@@ -1,0 +1,58 @@
+{
+  "runtime_version": "0.1.0-dev",
+  "spec_reference": "1.0.0",
+  "kernel_abi_reference": "1.0.0",
+  "status": "bootstrap-extraction-not-integrated",
+  "completed": [
+    "copy-lua-core-preserve-module-paths",
+    "copy-cdin-docs",
+    "copy-spec-reference",
+    "copy-kernel-abi-reference-only",
+    "host-independent-unit-scaffold",
+    "source-checksum-manifest"
+  ],
+  "open_items": [
+    {
+      "id": "RTM-001",
+      "area": "document-ownership",
+      "status": "open",
+      "path": "data/core/doc/init.lua",
+      "detail": "Still owns in-memory canonical line content and undo/redo; replace only after a tested Host document client and caller migration exist."
+    },
+    {
+      "id": "RTM-002",
+      "area": "host-api",
+      "status": "open",
+      "path": "data/core/init.lua",
+      "detail": "Copied core still uses legacy system/renderer/core globals; Host adapter is not wired."
+    },
+    {
+      "id": "RTM-003",
+      "area": "frontend-separation",
+      "status": "open",
+      "path": "data/core/views/; data/core/rootview/",
+      "detail": "Logical UI model is mixed with renderer calls in the old host contract."
+    },
+    {
+      "id": "RTM-004",
+      "area": "text-pipeline",
+      "status": "open",
+      "path": "data/core/text/bidi.lua; data/core/text/shaper.lua",
+      "detail": "Copied for source continuity; target ownership belongs to Frontend."
+    },
+    {
+      "id": "RTM-005",
+      "area": "filesystem-boundary",
+      "status": "open",
+      "path": "data/core/doc/init.lua",
+      "detail": "Document load/save still use io.open instead of injected Backend filesystem service."
+    },
+    {
+      "id": "RTM-006",
+      "area": "kernel-integration",
+      "status": "open",
+      "path": "CDIN Backend",
+      "detail": "Prove create/edit/notification/read with Kernel ABI 1.0.0 before extracting final Runtime 1.0.0."
+    }
+  ]
+}

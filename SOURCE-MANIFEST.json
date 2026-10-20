@@ -1,0 +1,1110 @@
+{
+  "schema_version": 1,
+  "description": "SHA-256 provenance inventory for files copied from cdin/spec/kernel; any local transform is documented per entry.",
+  "files": [
+    {
+      "source_repository": "cdin",
+      "source_path": "LICENSE",
+      "target_path": "LICENSE",
+      "source_sha256": "fb981668c18a279e285fc4d83fba1e836cc84dd4daa73c9697d3cfd2d8aca6e0",
+      "sha256": "fb981668c18a279e285fc4d83fba1e836cc84dd4daa73c9697d3cfd2d8aca6e0",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "NOTICE",
+      "target_path": "NOTICE",
+      "source_sha256": "a0f32ec0aa0b8d18c502f71ad28f03d75928a5acd93fc92884c9919966a7341c",
+      "sha256": "a0f32ec0aa0b8d18c502f71ad28f03d75928a5acd93fc92884c9919966a7341c",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "CODE_OF_CONDUCT.md",
+      "target_path": "CODE_OF_CONDUCT.md",
+      "source_sha256": "93fcd6c54ec4e1a45706041d008688fa6d6d6e744989f864163fe2325cbb6ec6",
+      "sha256": "93fcd6c54ec4e1a45706041d008688fa6d6d6e744989f864163fe2325cbb6ec6",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "SECURITY.md",
+      "target_path": "SECURITY.md",
+      "source_sha256": "c689a6e1d939eaf62313f45b2ecbac76e98ccb83cf740f8c1ef57af628a9706b",
+      "sha256": "c689a6e1d939eaf62313f45b2ecbac76e98ccb83cf740f8c1ef57af628a9706b",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": ".editorconfig",
+      "target_path": ".editorconfig",
+      "source_sha256": "5e75f8322ea6a68e1fb6e20bf806ab87be247817fd2f96552d54f05530b90a1f",
+      "sha256": "5e75f8322ea6a68e1fb6e20bf806ab87be247817fd2f96552d54f05530b90a1f",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": ".gitattributes",
+      "target_path": ".gitattributes",
+      "source_sha256": "d903cf85d59a34dfbd17f6f1b824e43cdf119e544c7e7531208b7a50333bc11d",
+      "sha256": "d903cf85d59a34dfbd17f6f1b824e43cdf119e544c7e7531208b7a50333bc11d",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": ".luacheckrc",
+      "target_path": ".luacheckrc",
+      "source_sha256": "19591ec279144d123f0cf6bc6cecb3970f160384b6949f954934df786587be08",
+      "sha256": "19591ec279144d123f0cf6bc6cecb3970f160384b6949f954934df786587be08",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/commands/command.lua",
+      "target_path": "data/core/commands/command.lua",
+      "source_sha256": "7b12f6e1753a38223828aee5e1aa4072111e71b3ff84be2236a0da788288d206",
+      "sha256": "7b12f6e1753a38223828aee5e1aa4072111e71b3ff84be2236a0da788288d206",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/commands/core.lua",
+      "target_path": "data/core/commands/core.lua",
+      "source_sha256": "18846ba3754dabe75145db07015d430f8be86d1c29a0f7a6c03b043b60536359",
+      "sha256": "18846ba3754dabe75145db07015d430f8be86d1c29a0f7a6c03b043b60536359",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/commands/doc.lua",
+      "target_path": "data/core/commands/doc.lua",
+      "source_sha256": "dfc1011d46bf62b1be38cd94c669fc196345fef8d860f430a334ea2e7813678d",
+      "sha256": "dfc1011d46bf62b1be38cd94c669fc196345fef8d860f430a334ea2e7813678d",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/commands/plugin.lua",
+      "target_path": "data/core/commands/plugin.lua",
+      "source_sha256": "3e8eabacbdb07cd0a7f9605e3a12668faaa055680a86e54812d617fa184ff688",
+      "sha256": "3e8eabacbdb07cd0a7f9605e3a12668faaa055680a86e54812d617fa184ff688",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/commands/root.lua",
+      "target_path": "data/core/commands/root.lua",
+      "source_sha256": "e7fa2c6eb502329448d5af11a9e25357262b0c1353761f99e32bb9eaf24bea78",
+      "sha256": "e7fa2c6eb502329448d5af11a9e25357262b0c1353761f99e32bb9eaf24bea78",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/config.lua",
+      "target_path": "data/core/config.lua",
+      "source_sha256": "5e5a5bd497d40658fdcf33fde1ac294527e3b3651201d050528f2fed0c11c558",
+      "sha256": "5e5a5bd497d40658fdcf33fde1ac294527e3b3651201d050528f2fed0c11c558",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/doc/highlighter.lua",
+      "target_path": "data/core/doc/highlighter.lua",
+      "source_sha256": "edb49b034a00f6a7febc64445190c0e5f3d8aa341a4ae45952effb83e853fb6b",
+      "sha256": "edb49b034a00f6a7febc64445190c0e5f3d8aa341a4ae45952effb83e853fb6b",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/doc/init.lua",
+      "target_path": "data/core/doc/init.lua",
+      "source_sha256": "baa2b44299d520d60010300f3b55f38dd9dfc7b71237a43b4b3321629292049f",
+      "sha256": "baa2b44299d520d60010300f3b55f38dd9dfc7b71237a43b4b3321629292049f",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/doc/search.lua",
+      "target_path": "data/core/doc/search.lua",
+      "source_sha256": "b4a272d51ec7eb6ff5c542b2f7af2fe5da0e19520ab2d28add6a62b7309a39e2",
+      "sha256": "b4a272d51ec7eb6ff5c542b2f7af2fe5da0e19520ab2d28add6a62b7309a39e2",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/doc/translate.lua",
+      "target_path": "data/core/doc/translate.lua",
+      "source_sha256": "b4bfbbfca6d0e23ff940317d5874f08fe6553deca2a3b7a4c147fcc03f7f089f",
+      "sha256": "b4bfbbfca6d0e23ff940317d5874f08fe6553deca2a3b7a4c147fcc03f7f089f",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/docs.lua",
+      "target_path": "data/core/docs.lua",
+      "source_sha256": "b3fac810083aec528c9fbf0d644cce80771ac47224b0c17604316e8d662e06b1",
+      "sha256": "b3fac810083aec528c9fbf0d644cce80771ac47224b0c17604316e8d662e06b1",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/events.lua",
+      "target_path": "data/core/events.lua",
+      "source_sha256": "777f040e1c9c5115f38048ab47c031366e047642425bc8ea8e114019687b2a28",
+      "sha256": "777f040e1c9c5115f38048ab47c031366e047642425bc8ea8e114019687b2a28",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/fs.lua",
+      "target_path": "data/core/fs.lua",
+      "source_sha256": "da2727415a5b092379f1e52d4c01f6c91a800b50c46b67682f17f7e624c17179",
+      "sha256": "da2727415a5b092379f1e52d4c01f6c91a800b50c46b67682f17f7e624c17179",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/help.lua",
+      "target_path": "data/core/help.lua",
+      "source_sha256": "2756992b7841366d4b0c07502ecd85120f9e8b4779fa304dc8a29dd3b2c5e381",
+      "sha256": "2756992b7841366d4b0c07502ecd85120f9e8b4779fa304dc8a29dd3b2c5e381",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/init.lua",
+      "target_path": "data/core/init.lua",
+      "source_sha256": "5c0b45e0a50f9209c0da0ddd4363b4ee1def45dc6d4e3bd74741f576fbf62081",
+      "sha256": "5c0b45e0a50f9209c0da0ddd4363b4ee1def45dc6d4e3bd74741f576fbf62081",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/input/command.lua",
+      "target_path": "data/core/input/command.lua",
+      "source_sha256": "1fa6ea5c80d8d52e5e8bcad20ceac87cf29c53f0a2f7f23d27c9064ff789dfe4",
+      "sha256": "1fa6ea5c80d8d52e5e8bcad20ceac87cf29c53f0a2f7f23d27c9064ff789dfe4",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/input/keymap.lua",
+      "target_path": "data/core/input/keymap.lua",
+      "source_sha256": "47881ed4934e0eb799dc877511d46c842969cf3c50ca492238161a845e3e2932",
+      "sha256": "47881ed4934e0eb799dc877511d46c842969cf3c50ca492238161a845e3e2932",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/keymaps/default.lua",
+      "target_path": "data/core/keymaps/default.lua",
+      "source_sha256": "da6cf1db81f4e0fcac3b6f8f63dc7eaca3175a8c107da281c5522e0a196167ff",
+      "sha256": "da6cf1db81f4e0fcac3b6f8f63dc7eaca3175a8c107da281c5522e0a196167ff",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/lifecycle.lua",
+      "target_path": "data/core/lifecycle.lua",
+      "source_sha256": "f69a7e0b300e20ed1500cd0b5f7a5373ef0d418ab620fc54d2e8d82c12341a1c",
+      "sha256": "f69a7e0b300e20ed1500cd0b5f7a5373ef0d418ab620fc54d2e8d82c12341a1c",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/logging.lua",
+      "target_path": "data/core/logging.lua",
+      "source_sha256": "0f1684b76e7dae01e478dd87b9da5fed184224c7a4d1b455c42a16f679fdcacd",
+      "sha256": "0f1684b76e7dae01e478dd87b9da5fed184224c7a4d1b455c42a16f679fdcacd",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/loop.lua",
+      "target_path": "data/core/loop.lua",
+      "source_sha256": "58fac3d3e4d5be1fc55162d13d7bb0733a61258596268cd8513c76d1f7db3c5c",
+      "sha256": "58fac3d3e4d5be1fc55162d13d7bb0733a61258596268cd8513c76d1f7db3c5c",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/memory.lua",
+      "target_path": "data/core/memory.lua",
+      "source_sha256": "818b87c589fa61cb7aa7a827270aea04eab35dc29d82c3ca138828723f1ea645",
+      "sha256": "818b87c589fa61cb7aa7a827270aea04eab35dc29d82c3ca138828723f1ea645",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/plugins.lua",
+      "target_path": "data/core/plugins.lua",
+      "source_sha256": "c83057ac97452da6964833b5411cca32b9da791ee25c2b16cf0800a2120d7e2c",
+      "sha256": "c83057ac97452da6964833b5411cca32b9da791ee25c2b16cf0800a2120d7e2c",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/preboot.lua",
+      "target_path": "data/core/preboot.lua",
+      "source_sha256": "80b4c77ec1dc984f3fd6025c5e50812e3ec67b537fa4be27c38fc5469389d05d",
+      "sha256": "80b4c77ec1dc984f3fd6025c5e50812e3ec67b537fa4be27c38fc5469389d05d",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/project.lua",
+      "target_path": "data/core/project.lua",
+      "source_sha256": "3065505155bbd3cd1886d99b6a42a92b9ef406447dbd83ccad47ca994dff1764",
+      "sha256": "3065505155bbd3cd1886d99b6a42a92b9ef406447dbd83ccad47ca994dff1764",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/rootview/empty_view.lua",
+      "target_path": "data/core/rootview/empty_view.lua",
+      "source_sha256": "deb2c376c767f82d462366905b0295a0fa306838284fd5c4fef3fd16065392aa",
+      "sha256": "deb2c376c767f82d462366905b0295a0fa306838284fd5c4fef3fd16065392aa",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/rootview/init.lua",
+      "target_path": "data/core/rootview/init.lua",
+      "source_sha256": "e741d436e97b9001938d168bc7a721a5b542b28c639f9014df1e07ee3116d5a3",
+      "sha256": "e741d436e97b9001938d168bc7a721a5b542b28c639f9014df1e07ee3116d5a3",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/rootview/logo.lua",
+      "target_path": "data/core/rootview/logo.lua",
+      "source_sha256": "b1e54a5dab33be6f1f29c750998b0ff1c5f8c1aa981a0ace343d849df160b52e",
+      "sha256": "b1e54a5dab33be6f1f29c750998b0ff1c5f8c1aa981a0ace343d849df160b52e",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/rootview/node.lua",
+      "target_path": "data/core/rootview/node.lua",
+      "source_sha256": "41e1e394bd09251cdda43abbc46191e12a11ed4c2d46e58332bcba9939ce4237",
+      "sha256": "41e1e394bd09251cdda43abbc46191e12a11ed4c2d46e58332bcba9939ce4237",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/runtime/strict.lua",
+      "target_path": "data/core/runtime/strict.lua",
+      "source_sha256": "34a97f25a60247726df04168e2faf87eb741120a3980924a358bb00f5c09285d",
+      "sha256": "34a97f25a60247726df04168e2faf87eb741120a3980924a358bb00f5c09285d",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/state.lua",
+      "target_path": "data/core/state.lua",
+      "source_sha256": "f9bcde22d167fbcd0b20d0ad803ee8771d73faaf83ef682fa4330d2f4b15d1b4",
+      "sha256": "f9bcde22d167fbcd0b20d0ad803ee8771d73faaf83ef682fa4330d2f4b15d1b4",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/style.lua",
+      "target_path": "data/core/style.lua",
+      "source_sha256": "cfb1d9d2a3f99684e0799f98c81dd1feb08a87a881d47a2dfad1c6939159d93e",
+      "sha256": "cfb1d9d2a3f99684e0799f98c81dd1feb08a87a881d47a2dfad1c6939159d93e",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/syntax/init.lua",
+      "target_path": "data/core/syntax/init.lua",
+      "source_sha256": "db3ef8f250359c0598f9dca0c11cb2f08c891c3b1442e8e1526a53b27820681f",
+      "sha256": "db3ef8f250359c0598f9dca0c11cb2f08c891c3b1442e8e1526a53b27820681f",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/syntax/syntax.lua",
+      "target_path": "data/core/syntax/syntax.lua",
+      "source_sha256": "c9ed59d8bdc8144ddf94028d59cd202968755e25d8fcc9aa1c0e73172dbb700b",
+      "sha256": "c9ed59d8bdc8144ddf94028d59cd202968755e25d8fcc9aa1c0e73172dbb700b",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/syntax/tokenizer.lua",
+      "target_path": "data/core/syntax/tokenizer.lua",
+      "source_sha256": "b680b2a0d539adc1fec7c8ee86d6fd325f9a8e8959eb2cd55dfec4d421315507",
+      "sha256": "b680b2a0d539adc1fec7c8ee86d6fd325f9a8e8959eb2cd55dfec4d421315507",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/text/bidi.lua",
+      "target_path": "data/core/text/bidi.lua",
+      "source_sha256": "1f57d1a57afae6ae0ec1f1542cced4dfc53a1edcc894da75b8b098f737284a5f",
+      "sha256": "1f57d1a57afae6ae0ec1f1542cced4dfc53a1edcc894da75b8b098f737284a5f",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/text/init.lua",
+      "target_path": "data/core/text/init.lua",
+      "source_sha256": "15a9a81171a8129733afa0edd8d51391f57542e994778094b254d3424b9c0258",
+      "sha256": "15a9a81171a8129733afa0edd8d51391f57542e994778094b254d3424b9c0258",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/text/shaper.lua",
+      "target_path": "data/core/text/shaper.lua",
+      "source_sha256": "0ce9dbc07f3985cfb8c4377c6da066778f00b5b9b3ec0d74e6c4050079db979a",
+      "sha256": "0ce9dbc07f3985cfb8c4377c6da066778f00b5b9b3ec0d74e6c4050079db979a",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/text/utf8.lua",
+      "target_path": "data/core/text/utf8.lua",
+      "source_sha256": "56f3d2edc8bb6f8790d148dbbe257b6d23f83ee783086c46a42a9a1e6c2ab0cd",
+      "sha256": "56f3d2edc8bb6f8790d148dbbe257b6d23f83ee783086c46a42a9a1e6c2ab0cd",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/themes.lua",
+      "target_path": "data/core/themes.lua",
+      "source_sha256": "87ce8f0ba89b5122a360389953330b55b85fadd142eac8902b943a4f2ea074d0",
+      "sha256": "87ce8f0ba89b5122a360389953330b55b85fadd142eac8902b943a4f2ea074d0",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/utils/common.lua",
+      "target_path": "data/core/utils/common.lua",
+      "source_sha256": "ac3769890673cefa573bffd73d2a8fc3757bbab3e836d18718aad1e1c8936f1d",
+      "sha256": "ac3769890673cefa573bffd73d2a8fc3757bbab3e836d18718aad1e1c8936f1d",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/utils/object.lua",
+      "target_path": "data/core/utils/object.lua",
+      "source_sha256": "a5030d691c73de1706bf1917269dc52404548d4d30e24e0d0ddcf70059eb01ea",
+      "sha256": "a5030d691c73de1706bf1917269dc52404548d4d30e24e0d0ddcf70059eb01ea",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/views/commandview.lua",
+      "target_path": "data/core/views/commandview.lua",
+      "source_sha256": "eba0716df61a54f63abfc56a61f5c0a4f38d1436d2a94e8244c750cc8d8c0193",
+      "sha256": "eba0716df61a54f63abfc56a61f5c0a4f38d1436d2a94e8244c750cc8d8c0193",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/views/docview.lua",
+      "target_path": "data/core/views/docview.lua",
+      "source_sha256": "60a702fb0103e7075be996d28b430e075afa2ea3a7adbcd11bd23df4dc38b97e",
+      "sha256": "60a702fb0103e7075be996d28b430e075afa2ea3a7adbcd11bd23df4dc38b97e",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/views/logview.lua",
+      "target_path": "data/core/views/logview.lua",
+      "source_sha256": "d65e74b4474ea68ecdb468c5b9ac613f9d679630461f527c8f785e4e5e28c37b",
+      "sha256": "d65e74b4474ea68ecdb468c5b9ac613f9d679630461f527c8f785e4e5e28c37b",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/views/statusview.lua",
+      "target_path": "data/core/views/statusview.lua",
+      "source_sha256": "851efd202953f15ca6c8b36f9b74e15369e9f22215fae792e8f030ee066acd2e",
+      "sha256": "851efd202953f15ca6c8b36f9b74e15369e9f22215fae792e8f030ee066acd2e",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/views/titlebar.lua",
+      "target_path": "data/core/views/titlebar.lua",
+      "source_sha256": "bd5754bd903f057e43a1f67b8e70411cf25294db8b818534fd56fc325ff6b563",
+      "sha256": "bd5754bd903f057e43a1f67b8e70411cf25294db8b818534fd56fc325ff6b563",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "data/core/views/view.lua",
+      "target_path": "data/core/views/view.lua",
+      "source_sha256": "7bf00deb9e4f30d9d5094d2e85f342c92fb0b0f82703cb2b5098e44d371521a9",
+      "sha256": "7bf00deb9e4f30d9d5094d2e85f342c92fb0b0f82703cb2b5098e44d371521a9",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "scripts/_stub_env.lua",
+      "target_path": "scripts/_stub_env.lua",
+      "source_sha256": "44483a0281406735e21fa488521967fced9b54f1dcb3e75c6afa59256e2c58ce",
+      "sha256": "44483a0281406735e21fa488521967fced9b54f1dcb3e75c6afa59256e2c58ce",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "scripts/test_lua.lua",
+      "target_path": "scripts/test_lua.lua",
+      "source_sha256": "4f7d467b06aab71bb2e67560f683365dc5de06e3e597b7eab42cbc37fda282cc",
+      "sha256": "9dc897637cfcc0b172db780a387d6cbc0dcef3a3c0bc69227abe26b5e3a57538",
+      "transform": "local patch: remove the generated fixture tree on exit unless CDIN_DIR points to an externally owned tree"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "scripts/test_commands.lua",
+      "target_path": "scripts/test_commands.lua",
+      "source_sha256": "40c06bbc8581a155cc946f317b566ebf0255e012b8a49f4fc005bd3b759508dd",
+      "sha256": "40c06bbc8581a155cc946f317b566ebf0255e012b8a49f4fc005bd3b759508dd",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "scripts/test_workflows.lua",
+      "target_path": "scripts/test_workflows.lua",
+      "source_sha256": "8a122e974cfa235e351ad4117cc3cfbbf92015087b5f18fb8fee77e403166e3d",
+      "sha256": "8a122e974cfa235e351ad4117cc3cfbbf92015087b5f18fb8fee77e403166e3d",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "scripts/test_site_dir.lua",
+      "target_path": "scripts/test_site_dir.lua",
+      "source_sha256": "49cf31a3f2b7064b75e83a115cf114a57d0dfd68aaebe113d6adb29674736e4d",
+      "sha256": "49cf31a3f2b7064b75e83a115cf114a57d0dfd68aaebe113d6adb29674736e4d",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "docs/README.md",
+      "target_path": "docs/README.md",
+      "source_sha256": "1759bc0d6b61049c8b9e5ab1faf9373b441378626c79649becda6799fd600eea",
+      "sha256": "1759bc0d6b61049c8b9e5ab1faf9373b441378626c79649becda6799fd600eea",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "docs/architecture/extension-contract.md",
+      "target_path": "docs/architecture/extension-contract.md",
+      "source_sha256": "73e965ffd7b21bacf44ed602ce9dc56e3addfef60c713f44c004b64af270ea7c",
+      "sha256": "73e965ffd7b21bacf44ed602ce9dc56e3addfef60c713f44c004b64af270ea7c",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "docs/architecture/internals.md",
+      "target_path": "docs/architecture/internals.md",
+      "source_sha256": "753da5697ea88a5d2d8c265f38c6934de4f02f10b0e1dbe0a62bcfcdde0fd4b4",
+      "sha256": "753da5697ea88a5d2d8c265f38c6934de4f02f10b0e1dbe0a62bcfcdde0fd4b4",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "docs/architecture/overview.md",
+      "target_path": "docs/architecture/overview.md",
+      "source_sha256": "bfd27e7a01df8f1ae963620ae1a511734416ebd2a7759749f20d3e246f96501d",
+      "sha256": "bfd27e7a01df8f1ae963620ae1a511734416ebd2a7759749f20d3e246f96501d",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "docs/guides/building.md",
+      "target_path": "docs/guides/building.md",
+      "source_sha256": "70a374a75eaa2f4a295577dcebed782ce2486dc293273e42628ffa19c9e89b0a",
+      "sha256": "70a374a75eaa2f4a295577dcebed782ce2486dc293273e42628ffa19c9e89b0a",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "docs/guides/commands.md",
+      "target_path": "docs/guides/commands.md",
+      "source_sha256": "ff992daca22b683f97a6a093f1455b977db35bf70eaf7a4498bf8da9f270d542",
+      "sha256": "ff992daca22b683f97a6a093f1455b977db35bf70eaf7a4498bf8da9f270d542",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "docs/guides/configuration.md",
+      "target_path": "docs/guides/configuration.md",
+      "source_sha256": "9b05b0dc18c7c6ef4f978b99a292d37ef19530c4aa206b3005dbbd9b638f647d",
+      "sha256": "9b05b0dc18c7c6ef4f978b99a292d37ef19530c4aa206b3005dbbd9b638f647d",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "docs/guides/extensions.md",
+      "target_path": "docs/guides/extensions.md",
+      "source_sha256": "008cbb04d6f01bd43ca1b46847bee27e350441a0ca25f95bbebe62b1b0cd8340",
+      "sha256": "008cbb04d6f01bd43ca1b46847bee27e350441a0ca25f95bbebe62b1b0cd8340",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "docs/guides/getting-started.md",
+      "target_path": "docs/guides/getting-started.md",
+      "source_sha256": "a6c445e5143c4a3cb54dde0fa22f85b82af45982078c09513f3aa8736179ec09",
+      "sha256": "a6c445e5143c4a3cb54dde0fa22f85b82af45982078c09513f3aa8736179ec09",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "docs/guides/plugins.md",
+      "target_path": "docs/guides/plugins.md",
+      "source_sha256": "9181a21ff4645af7339bf55a7d24aae62599c75f63dbf4814a936daec562a742",
+      "sha256": "9181a21ff4645af7339bf55a7d24aae62599c75f63dbf4814a936daec562a742",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "cdin",
+      "source_path": "docs/guides/troubleshooting.md",
+      "target_path": "docs/guides/troubleshooting.md",
+      "source_sha256": "d5ce3d7cf163dbbd27a2a81aa14940b3b084e220806fd6dd6fece717664edc62",
+      "sha256": "d5ce3d7cf163dbbd27a2a81aa14940b3b084e220806fd6dd6fece717664edc62",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "README.md",
+      "target_path": "references/spec/README-upstream.md",
+      "source_sha256": "c010791030e620322b861cc2cfab7d637c54b46bd1b0fa1a1e4ecefcd35c5686",
+      "sha256": "c010791030e620322b861cc2cfab7d637c54b46bd1b0fa1a1e4ecefcd35c5686",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "STATUS.md",
+      "target_path": "references/spec/STATUS.md",
+      "source_sha256": "159928080702782c8990d2a73e7053c21a00e35be84f5456fceeed3c86fb28eb",
+      "sha256": "159928080702782c8990d2a73e7053c21a00e35be84f5456fceeed3c86fb28eb",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "CHANGELOG.md",
+      "target_path": "references/spec/CHANGELOG.md",
+      "source_sha256": "4b8aecba87ad687cf30efc6177c66b46b7fc613c83ae96430cfaf6959dce775b",
+      "sha256": "4b8aecba87ad687cf30efc6177c66b46b7fc613c83ae96430cfaf6959dce775b",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "CONVENTIONS.md",
+      "target_path": "references/spec/CONVENTIONS.md",
+      "source_sha256": "0e20d76fac56cfa04c371f7d99aafe9a0cd92071241ddb835205f700400a498e",
+      "sha256": "0e20d76fac56cfa04c371f7d99aafe9a0cd92071241ddb835205f700400a498e",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "GLOSSARY.md",
+      "target_path": "references/spec/GLOSSARY.md",
+      "source_sha256": "52a2ebe9c02b6ca9588022f5e95a8dd0164a3f2328419f78a5663eafcf8d2c76",
+      "sha256": "52a2ebe9c02b6ca9588022f5e95a8dd0164a3f2328419f78a5663eafcf8d2c76",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "AGENTS.md",
+      "target_path": "references/spec/AGENTS.md",
+      "source_sha256": "7daee867ecf3fded199fab0f05434a4ba9c9b0ee16a738278922b300cf01bf0e",
+      "sha256": "7daee867ecf3fded199fab0f05434a4ba9c9b0ee16a738278922b300cf01bf0e",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "NOTICE",
+      "target_path": "references/spec/NOTICE",
+      "source_sha256": "d6b36ca3b20088ce078a1202941045ce3edc83af372ba53edb309c34a57f22ec",
+      "sha256": "d6b36ca3b20088ce078a1202941045ce3edc83af372ba53edb309c34a57f22ec",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "CONTRIBUTING.md",
+      "target_path": "references/spec/CONTRIBUTING.md",
+      "source_sha256": "d2c413d14981e653b429406a3dbdb5500a07603a726c46b74212900699188cb1",
+      "sha256": "d2c413d14981e653b429406a3dbdb5500a07603a726c46b74212900699188cb1",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "LICENSE",
+      "target_path": "references/spec/LICENSE",
+      "source_sha256": "fb981668c18a279e285fc4d83fba1e836cc84dd4daa73c9697d3cfd2d8aca6e0",
+      "sha256": "fb981668c18a279e285fc4d83fba1e836cc84dd4daa73c9697d3cfd2d8aca6e0",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "scripts/README.md",
+      "target_path": "references/spec/scripts/README.md",
+      "source_sha256": "018a9880ef2ccd34e370d67a589e1b226f5439e0592d469ebecd2a08a279ba0c",
+      "sha256": "018a9880ef2ccd34e370d67a589e1b226f5439e0592d469ebecd2a08a279ba0c",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "scripts/check.py",
+      "target_path": "references/spec/scripts/check.py",
+      "source_sha256": "a83be03610439cb867b3899e53800975d121965f29145fd582ce515954941526",
+      "sha256": "a83be03610439cb867b3899e53800975d121965f29145fd582ce515954941526",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "psx.yml",
+      "target_path": "references/spec/psx.yml",
+      "source_sha256": "3205315c26cbaca2ad70ce1079d948c93d81b24d8db5f54819ef22c11689ce95",
+      "sha256": "3205315c26cbaca2ad70ce1079d948c93d81b24d8db5f54819ef22c11689ce95",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/README.md",
+      "target_path": "references/spec/docs/README.md",
+      "source_sha256": "26ee07f3aabaf84cfcb709b6a97c7600b33edef23790a606910e608faa4ca246",
+      "sha256": "26ee07f3aabaf84cfcb709b6a97c7600b33edef23790a606910e608faa4ca246",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/adr/ADR-0001-repository-topology.md",
+      "target_path": "references/spec/docs/adr/ADR-0001-repository-topology.md",
+      "source_sha256": "180adf593a95e5e2d1c5b8188cb71ddd955e2715b2df83e6e2ff8842945d0f82",
+      "sha256": "180adf593a95e5e2d1c5b8188cb71ddd955e2715b2df83e6e2ff8842945d0f82",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/adr/ADR-0002-kernel-owns-documents.md",
+      "target_path": "references/spec/docs/adr/ADR-0002-kernel-owns-documents.md",
+      "source_sha256": "8b4b1befd98423dea339bc10ffe75cb6e916f6eef7b7e29fdc7eba244b3159ef",
+      "sha256": "8b4b1befd98423dea339bc10ffe75cb6e916f6eef7b7e29fdc7eba244b3159ef",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/adr/ADR-0003-c-abi.md",
+      "target_path": "references/spec/docs/adr/ADR-0003-c-abi.md",
+      "source_sha256": "60147cb4a8c30e3647266e6a8bacbe47d7bbf1b29fdb704a9fc71a6a406231a4",
+      "sha256": "60147cb4a8c30e3647266e6a8bacbe47d7bbf1b29fdb704a9fc71a6a406231a4",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/adr/ADR-0004-implementation-language.md",
+      "target_path": "references/spec/docs/adr/ADR-0004-implementation-language.md",
+      "source_sha256": "0bd64d3b557c4cba39beea08ef7084d9420daaa05419e1851b02586559824f62",
+      "sha256": "0bd64d3b557c4cba39beea08ef7084d9420daaa05419e1851b02586559824f62",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/adr/ADR-0005-frontend-protocol.md",
+      "target_path": "references/spec/docs/adr/ADR-0005-frontend-protocol.md",
+      "source_sha256": "5020a66feeab36733256df80a2db36803707aa2465bc862590c98e8909aadc10",
+      "sha256": "5020a66feeab36733256df80a2db36803707aa2465bc862590c98e8909aadc10",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/adr/ADR-0006-visual-layout-ownership.md",
+      "target_path": "references/spec/docs/adr/ADR-0006-visual-layout-ownership.md",
+      "source_sha256": "92b00fbccddc1b5e7e653455c7c48bf98f8f96f4b6aff9818a46b2aed926f874",
+      "sha256": "92b00fbccddc1b5e7e653455c7c48bf98f8f96f4b6aff9818a46b2aed926f874",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/adr/ADR-0007-selection-ownership.md",
+      "target_path": "references/spec/docs/adr/ADR-0007-selection-ownership.md",
+      "source_sha256": "d65012509f3bd8c4739d8b87ff230f0db86695dc29efac73976fb93275c88ed4",
+      "sha256": "d65012509f3bd8c4739d8b87ff230f0db86695dc29efac73976fb93275c88ed4",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/adr/ADR-0008-persistence-outside-kernel.md",
+      "target_path": "references/spec/docs/adr/ADR-0008-persistence-outside-kernel.md",
+      "source_sha256": "b83ac0a9fc92cd974bbe1bacfe7c91dd2f8cfce7cb1a9d3c36742def38ddd4d3",
+      "sha256": "b83ac0a9fc92cd974bbe1bacfe7c91dd2f8cfce7cb1a9d3c36742def38ddd4d3",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/adr/ADR-0009-regex-engine.md",
+      "target_path": "references/spec/docs/adr/ADR-0009-regex-engine.md",
+      "source_sha256": "21c82cabbf96ed0c31df2ca706a4a9e76eb80a029ce2b7e3df7a2a2594074129",
+      "sha256": "21c82cabbf96ed0c31df2ca706a4a9e76eb80a029ce2b7e3df7a2a2594074129",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/adr/ADR-0010-unicode-version.md",
+      "target_path": "references/spec/docs/adr/ADR-0010-unicode-version.md",
+      "source_sha256": "92f9c9233d64bf900844924fb12e8aecfbf582f342948103aeb22e8fda6f5889",
+      "sha256": "92f9c9233d64bf900844924fb12e8aecfbf582f342948103aeb22e8fda6f5889",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/adr/ADR-0011-extension-ui.md",
+      "target_path": "references/spec/docs/adr/ADR-0011-extension-ui.md",
+      "source_sha256": "3ffbd31dbe897ff7e345a18ebc6f5b2e03c6d0a7d8a35899b2c41ce68498a572",
+      "sha256": "3ffbd31dbe897ff7e345a18ebc6f5b2e03c6d0a7d8a35899b2c41ce68498a572",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/adr/ADR-0012-migration-strategy.md",
+      "target_path": "references/spec/docs/adr/ADR-0012-migration-strategy.md",
+      "source_sha256": "8f9e0e3ea2951d79c089be5781a23f105251db7bb8d560f2e685dc3e063a6611",
+      "sha256": "8f9e0e3ea2951d79c089be5781a23f105251db7bb8d560f2e685dc3e063a6611",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/adr/ADR-0013-hot-swap.md",
+      "target_path": "references/spec/docs/adr/ADR-0013-hot-swap.md",
+      "source_sha256": "4c85958065d6185037a378db4e7970be1a039ff2fef3717a27d470514d68fc2f",
+      "sha256": "4c85958065d6185037a378db4e7970be1a039ff2fef3717a27d470514d68fc2f",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/adr/ADR-0014-no-shared-repositories.md",
+      "target_path": "references/spec/docs/adr/ADR-0014-no-shared-repositories.md",
+      "source_sha256": "e59b75368dab2624b47b6176582248418fe7b4a072a950d1578e931be7a72d5e",
+      "sha256": "e59b75368dab2624b47b6176582248418fe7b4a072a950d1578e931be7a72d5e",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/adr/ADR-0015-spec-language-and-scope.md",
+      "target_path": "references/spec/docs/adr/ADR-0015-spec-language-and-scope.md",
+      "source_sha256": "8835b1c12338174a0239c291e2734e3a5a2a9a395f54700e5f1de1f77e21113f",
+      "sha256": "8835b1c12338174a0239c291e2734e3a5a2a9a395f54700e5f1de1f77e21113f",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/adr/ADR-0016-arch-specific-optimizations.md",
+      "target_path": "references/spec/docs/adr/ADR-0016-arch-specific-optimizations.md",
+      "source_sha256": "7c5ba9d70f5c5fa224526830188bb3aa2c8a3343c9a0bbe07d9c2534b3d199c3",
+      "sha256": "7c5ba9d70f5c5fa224526830188bb3aa2c8a3343c9a0bbe07d9c2534b3d199c3",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/adr/ADR-0017-kernel-synchronous-concurrency.md",
+      "target_path": "references/spec/docs/adr/ADR-0017-kernel-synchronous-concurrency.md",
+      "source_sha256": "446b2c17fb0d66a8dc20979b6bcb133329b9037b5848e81b77ebbdb020d6e664",
+      "sha256": "446b2c17fb0d66a8dc20979b6bcb133329b9037b5848e81b77ebbdb020d6e664",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/adr/README.md",
+      "target_path": "references/spec/docs/adr/README.md",
+      "source_sha256": "018ed3834f9399040b023aaf7b5a5606c2e904331be77e35132eae5821e35ace",
+      "sha256": "018ed3834f9399040b023aaf7b5a5606c2e904331be77e35132eae5821e35ace",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/adr/open-decisions.md",
+      "target_path": "references/spec/docs/adr/open-decisions.md",
+      "source_sha256": "4c97cc25e89c082572f464ae4030e76d5bbc730701d7045ac20f08345d8e9571",
+      "sha256": "4c97cc25e89c082572f464ae4030e76d5bbc730701d7045ac20f08345d8e9571",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/architecture/abi-and-compatibility.md",
+      "target_path": "references/spec/docs/architecture/abi-and-compatibility.md",
+      "source_sha256": "b87c42666badee3af53ed976d3db302713668275d2d27ae44ed6862ca02fcd79",
+      "sha256": "b87c42666badee3af53ed976d3db302713668275d2d27ae44ed6862ca02fcd79",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/architecture/concurrency.md",
+      "target_path": "references/spec/docs/architecture/concurrency.md",
+      "source_sha256": "cd9fdaa5cddc4c4feda7a60fd12ea575299d929a155cdf24329100809f27e839",
+      "sha256": "cd9fdaa5cddc4c4feda7a60fd12ea575299d929a155cdf24329100809f27e839",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/architecture/error-model.md",
+      "target_path": "references/spec/docs/architecture/error-model.md",
+      "source_sha256": "907df2e437fb6fadaebe4a6e7512579f093575907caed099d3651cf26d77494f",
+      "sha256": "907df2e437fb6fadaebe4a6e7512579f093575907caed099d3651cf26d77494f",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/architecture/extension-model.md",
+      "target_path": "references/spec/docs/architecture/extension-model.md",
+      "source_sha256": "4f291676c6e2301c8965c2cd4b4cdbc1a7f13a0ba0b475e09c33568f2b7f2c49",
+      "sha256": "4f291676c6e2301c8965c2cd4b4cdbc1a7f13a0ba0b475e09c33568f2b7f2c49",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/architecture/frontend-protocol.md",
+      "target_path": "references/spec/docs/architecture/frontend-protocol.md",
+      "source_sha256": "0e6aedd382a7faeb1a9497551a11beb33f1403436ce222a302009cab37812505",
+      "sha256": "0e6aedd382a7faeb1a9497551a11beb33f1403436ce222a302009cab37812505",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/architecture/lifecycle.md",
+      "target_path": "references/spec/docs/architecture/lifecycle.md",
+      "source_sha256": "a467c3ae104f89959f8b41f765d7bd684a786068f5e139be9a4fd9895b6c8722",
+      "sha256": "a467c3ae104f89959f8b41f765d7bd684a786068f5e139be9a4fd9895b6c8722",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/architecture/migration.md",
+      "target_path": "references/spec/docs/architecture/migration.md",
+      "source_sha256": "33cf7f424271130046f68269f14bd8242041588bc5b4faed437360c434e6e604",
+      "sha256": "33cf7f424271130046f68269f14bd8242041588bc5b4faed437360c434e6e604",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/architecture/module-boundaries.md",
+      "target_path": "references/spec/docs/architecture/module-boundaries.md",
+      "source_sha256": "24a56e9f659f4edd64cf280d378a4a1beb50c0270fd5b5c1ffbb264a88c0acd8",
+      "sha256": "24a56e9f659f4edd64cf280d378a4a1beb50c0270fd5b5c1ffbb264a88c0acd8",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/architecture/overview.md",
+      "target_path": "references/spec/docs/architecture/overview.md",
+      "source_sha256": "2fe22313095c5557d2fa8b646013b5c0ae4359a028aca1e26c4fd930958cefc5",
+      "sha256": "2fe22313095c5557d2fa8b646013b5c0ae4359a028aca1e26c4fd930958cefc5",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/architecture/repositories.md",
+      "target_path": "references/spec/docs/architecture/repositories.md",
+      "source_sha256": "b1a74766a1413ef49cc943ae1b7bbf687cab0315b0765a51f3db22066472f188",
+      "sha256": "b1a74766a1413ef49cc943ae1b7bbf687cab0315b0765a51f3db22066472f188",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/components/backend.md",
+      "target_path": "references/spec/docs/components/backend.md",
+      "source_sha256": "6dd926ab9f15cbda90800539c5154c90d11a433eba1829454c7f75ecc9b453c6",
+      "sha256": "6dd926ab9f15cbda90800539c5154c90d11a433eba1829454c7f75ecc9b453c6",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/components/cdin-x.md",
+      "target_path": "references/spec/docs/components/cdin-x.md",
+      "source_sha256": "3ce151535e41a6c6db2681b963a0becdae823d5e4962ae67ea12fc0e29a1195a",
+      "sha256": "3ce151535e41a6c6db2681b963a0becdae823d5e4962ae67ea12fc0e29a1195a",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/components/cdin.md",
+      "target_path": "references/spec/docs/components/cdin.md",
+      "source_sha256": "8342ba18b425ed95aa40298d6e4d3f26bc04eb3b7b7cec055bb4c90fac1b95ca",
+      "sha256": "8342ba18b425ed95aa40298d6e4d3f26bc04eb3b7b7cec055bb4c90fac1b95ca",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/components/data.md",
+      "target_path": "references/spec/docs/components/data.md",
+      "source_sha256": "df05db0ac5c5854e60261960af4b7e5e492e936a27abe5071c30056074c86fc7",
+      "sha256": "df05db0ac5c5854e60261960af4b7e5e492e936a27abe5071c30056074c86fc7",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/components/frontend.md",
+      "target_path": "references/spec/docs/components/frontend.md",
+      "source_sha256": "fa8cb224514abac3f65eb52c2dc7eaefe552839d35df6e92709586748cc781b4",
+      "sha256": "fa8cb224514abac3f65eb52c2dc7eaefe552839d35df6e92709586748cc781b4",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/components/runtime.md",
+      "target_path": "references/spec/docs/components/runtime.md",
+      "source_sha256": "4037eda864078f38007894965a756e736b7d45bed38fa7f21478ccd300f49767",
+      "sha256": "4037eda864078f38007894965a756e736b7d45bed38fa7f21478ccd300f49767",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/components/spec.md",
+      "target_path": "references/spec/docs/components/spec.md",
+      "source_sha256": "f8ce63a56cb283409144e0919676b39bb47f7b566b880b12ded925d7724e8274",
+      "sha256": "f8ce63a56cb283409144e0919676b39bb47f7b566b880b12ded925d7724e8274",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/decisions/README.md",
+      "target_path": "references/spec/docs/decisions/README.md",
+      "source_sha256": "a8e5f6bb9396df0345e2677cf7c454eb813522ea4ad8c2ba99959baab104cab2",
+      "sha256": "a8e5f6bb9396df0345e2677cf7c454eb813522ea4ad8c2ba99959baab104cab2",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/kernel/change-notifications.md",
+      "target_path": "references/spec/docs/kernel/change-notifications.md",
+      "source_sha256": "1cec1eb1b0f50db600abdd455a22ce4ebf1af069ae66216fa30d4b03f76dd7b7",
+      "sha256": "1cec1eb1b0f50db600abdd455a22ce4ebf1af069ae66216fa30d4b03f76dd7b7",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/kernel/document-model.md",
+      "target_path": "references/spec/docs/kernel/document-model.md",
+      "source_sha256": "75197b1e058393af79739608f4edd8ddc639425a0bf0c780183b261bb63b55f1",
+      "sha256": "75197b1e058393af79739608f4edd8ddc639425a0bf0c780183b261bb63b55f1",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/kernel/editing-operations.md",
+      "target_path": "references/spec/docs/kernel/editing-operations.md",
+      "source_sha256": "4f22ec04a14a3d29cb0f75a15dfcc0be0910510d4404e68784198b3fdedf3914",
+      "sha256": "4f22ec04a14a3d29cb0f75a15dfcc0be0910510d4404e68784198b3fdedf3914",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/kernel/implementation-status.md",
+      "target_path": "references/spec/docs/kernel/implementation-status.md",
+      "source_sha256": "19cbd10d4f594fe08a62c78165194c2880b38a98a5931679b4fac530ccdf61e6",
+      "sha256": "19cbd10d4f594fe08a62c78165194c2880b38a98a5931679b4fac530ccdf61e6",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/kernel/overview.md",
+      "target_path": "references/spec/docs/kernel/overview.md",
+      "source_sha256": "c5773cfc0ab869917e2d599e4136121ac04cb1597c578bb2e70aec27238c4e21",
+      "sha256": "c5773cfc0ab869917e2d599e4136121ac04cb1597c578bb2e70aec27238c4e21",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/kernel/positions-and-ranges.md",
+      "target_path": "references/spec/docs/kernel/positions-and-ranges.md",
+      "source_sha256": "87ff3be852a26131788e0dd60c873727293b9b8305b70115b0769a080c03b420",
+      "sha256": "87ff3be852a26131788e0dd60c873727293b9b8305b70115b0769a080c03b420",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/kernel/search-engine.md",
+      "target_path": "references/spec/docs/kernel/search-engine.md",
+      "source_sha256": "63f10e96e0fd06f53edcd1bfbfa35c6e7821e51add4d24b2471a3b91d93480fd",
+      "sha256": "63f10e96e0fd06f53edcd1bfbfa35c6e7821e51add4d24b2471a3b91d93480fd",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/kernel/text-model.md",
+      "target_path": "references/spec/docs/kernel/text-model.md",
+      "source_sha256": "c7fef4ba441185db209b4580a54b5010d40f40f911f9905938604465c69824de",
+      "sha256": "c7fef4ba441185db209b4580a54b5010d40f40f911f9905938604465c69824de",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/kernel/transactions.md",
+      "target_path": "references/spec/docs/kernel/transactions.md",
+      "source_sha256": "2fce5f22f54c37f278a21c1b41acebd98919d84575dff7308e3df1a6e32b6fae",
+      "sha256": "2fce5f22f54c37f278a21c1b41acebd98919d84575dff7308e3df1a6e32b6fae",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/kernel/undo-redo.md",
+      "target_path": "references/spec/docs/kernel/undo-redo.md",
+      "source_sha256": "90bca810badcb990f28452680c11a5fb5635ab48632a8136a5fc81e602ec3117",
+      "sha256": "90bca810badcb990f28452680c11a5fb5635ab48632a8136a5fc81e602ec3117",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/reference/conventions.md",
+      "target_path": "references/spec/docs/reference/conventions.md",
+      "source_sha256": "2f6e0e30374bc3e5532b58a4088310d0bcf67880b83271743a1762a82fb16dfc",
+      "sha256": "2f6e0e30374bc3e5532b58a4088310d0bcf67880b83271743a1762a82fb16dfc",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/reference/glossary.md",
+      "target_path": "references/spec/docs/reference/glossary.md",
+      "source_sha256": "f9552046b8d58986a865db373063703936daca26f0b1e5bac241de8e8e7aa9d9",
+      "sha256": "f9552046b8d58986a865db373063703936daca26f0b1e5bac241de8e8e7aa9d9",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/reference/status.md",
+      "target_path": "references/spec/docs/reference/status.md",
+      "source_sha256": "bf7525fe87ab373bbb3d19a9eae3768d012373f3c56e1f48225bc0131cb5ddf1",
+      "sha256": "bf7525fe87ab373bbb3d19a9eae3768d012373f3c56e1f48225bc0131cb5ddf1",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/testing/conformance.md",
+      "target_path": "references/spec/docs/testing/conformance.md",
+      "source_sha256": "0481549479a3b17152098fdf7100bac5b125e9765b024e4f411cc5799d7b7ee6",
+      "sha256": "0481549479a3b17152098fdf7100bac5b125e9765b024e4f411cc5799d7b7ee6",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "spec",
+      "source_path": "docs/testing/test-matrix.md",
+      "target_path": "references/spec/docs/testing/test-matrix.md",
+      "source_sha256": "29417990ef14dc8afb7f922ef4702dacadd9862d4f898e6a9b3df7a4d937cca6",
+      "sha256": "29417990ef14dc8afb7f922ef4702dacadd9862d4f898e6a9b3df7a4d937cca6",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "kernel",
+      "source_path": "docs/abi.md",
+      "target_path": "references/kernel/docs/abi.md",
+      "source_sha256": "6441c969c6daf258bd4d890e272beb2d8d88dff29d57c2e0f64400d0f168182d",
+      "sha256": "6441c969c6daf258bd4d890e272beb2d8d88dff29d57c2e0f64400d0f168182d",
+      "transform": "verbatim"
+    },
+    {
+      "source_repository": "kernel",
+      "source_path": "include/cdin/kernel.h",
+      "target_path": "references/kernel/include/cdin/kernel.h",
+      "source_sha256": "5103137e15a7afb074700f48d4c9924ad31d82a7f7c165cba4ea1e1ea9044c8c",
+      "sha256": "5103137e15a7afb074700f48d4c9924ad31d82a7f7c165cba4ea1e1ea9044c8c",
+      "transform": "verbatim"
+    }
+  ]
+}

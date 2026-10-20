@@ -1,0 +1,28 @@
+name: Runtime CI
+on:
+  push:
+  pull_request:
+
+jobs:
+  checks:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: leafo/gh-actions-lua@v11
+        with:
+          luaVersion: '5.4'
+      - name: Structural checks
+        run: python scripts/check_structure.py
+      - name: Lua unit tests
+        run: lua tests/unit/run.lua
+      - name: Legacy command/keymap tests
+        run: lua ./scripts/test_commands.lua
+      - name: Legacy plugin/theme tests
+        run: lua ./scripts/test_lua.lua
