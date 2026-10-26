@@ -1,59 +1,63 @@
-# cdin-runtime (bootstrap extraction)
+# CDIN Runtime
 
-This repository is the **initial modular extraction** of CDIN's Lua runtime. The copied application modules preserve their current `require "core.*"` identities and are kept under `data/core/` to minimize migration churn.
+CDIN Runtime is the Lua part of CDIN that controls editor behavior. It handles
+commands, key bindings, views, settings and extensions. It asks the Backend to
+perform document operations instead of storing the document itself.
 
-> **Status: experimental / migration scaffold — not yet a standalone editor.** The existing modules still consume the original CDIN host globals (`system`, `renderer`, and `core`) and are not all migrated to the proposed versioned Runtime Host API. In particular, `data/core/doc/init.lua` is intentionally copied unchanged and still owns an in-memory line buffer and undo/redo stacks. That is tracked migration debt, not a claim of Spec 1.0.0 conformance.
+## How it fits into CDIN
 
-## Scope
+| Part | Main job |
+| --- | --- |
+| Frontend | Shows the editor and receives user input. |
+| Runtime | Decides what editor actions mean and describes the current UI state. |
+| Backend | Connects the Runtime with the Kernel and operating-system services. |
+| Kernel | Owns document text, edits, versions and undo/redo history. |
 
-- Runtime-owned Lua application code: commands, keymaps, config, project state, plugin loader, syntax/highlighting and UI model.
-- Copied CDIN architecture/user documentation and a reference snapshot of the Spec and Kernel ABI.
-- Provisional, dependency-injected building blocks for Host API validation, stable error records and named registries.
-- Plain-Lua unit tests, inherited CDIN integration tests, deterministic plugin/theme fixtures and Python structural checks.
+The Runtime is not a standalone editor. It does not create a window, draw text,
+or access the operating system directly.
 
-## Explicitly out of scope
+## Current state
 
-The C host, SDL renderer, OS/file-system implementation, Lua C binding, build/install/package system and Kernel implementation remain in their respective repositories. The Kernel header under `references/kernel/` is for documentation and code review only; do not compile the Runtime against that copy. Integration builds must use the canonical `cdin-kernel` repository's public header and library through the CDIN Backend.
+This repository contains the reorganized Lua Runtime and tests that use a
+simulated Host. It cannot run as a complete editor yet: the production Backend
+adapter, live Kernel connection and Frontend Protocol integration are not
+included. The Host API and UI model are still provisional.
 
-## Layout
+The [CDIN Specification](https://github.com/cdin-editor/spec) defines the
+cross-project design and takes priority over this repository's implementation.
 
-```text
-data/core/                   Lua runtime (`core.*` import paths preserved)
-  runtime/                   strict mode + modular migration utilities
-  commands/ input/ views/    current runtime feature modules
-scripts/                     inherited CDIN test support and fixtures
- tests/unit/                  host-independent Lua unit tests
- tests/integration/           integration-test instructions/contracts
-docs/                         current CDIN docs and extraction decisions
-references/spec/              read-only Spec snapshot for traceability
-references/kernel/             read-only ABI/header snapshot for reference
-```
+## Try the tests
 
-## Requirements
-
-- Lua 5.4 for Lua tests; no third-party Lua testing framework is required.
-- Python 3.10+ for static checks and source-manifest verification.
-
-## Checks
+Install Lua 5.4 and `make`, then run from the repository root:
 
 ```sh
-python3 scripts/check_structure.py
-lua tests/unit/run.lua
-lua ./scripts/test_commands.lua
-lua ./scripts/test_lua.lua
+make check
 ```
 
-`make test` runs all host-independent and inherited Lua tests. `make test-site-dir` and `make test-workflows` require a compatible `cdin-x` checkout via `CDINX_DIR`. `make lint` runs `luacheck` when installed.
+You can also run one test group at a time:
 
-## Architecture references
+```sh
+make unit
+make integration
+```
 
-- [Architecture and boundaries](docs/architecture.md)
-- [Source map](docs/source-map.md)
-- [Migration status and open items](docs/migration-status.md)
-- [Runtime Host API draft](docs/runtime-host-api.md)
-- [Types and ownership](docs/types-and-ownership.md)
-- [Test strategy](docs/testing.md)
-- [Source provenance manifest](docs/source-manifest.md)
-- [Spec Runtime contract](references/spec/docs/components/runtime.md)
-- [Spec migration plan](references/spec/docs/architecture/migration.md)
-- [Kernel ABI reference](references/kernel/docs/abi.md)
+The integration tests use a simulated Host. Passing them does not prove that
+the real Kernel or Frontend is connected.
+
+## Start here
+
+- [User Guide](docs/user-guide.md) — an introduction and a small example.
+- [Architecture](docs/architecture/overview.md) — a simple explanation of how the parts fit together.
+- [Runtime Host API](docs/contracts/runtime-host-api.md) — what the Backend must provide.
+- [Extension API](docs/contracts/extension-api.md) — how Runtime extensions work.
+- [Build and test](docs/development/build-and-test.md) — local test commands.
+
+## Source layout
+
+- `lua/cdin/runtime/` — Runtime implementation.
+- `tests/` — unit tests and tests using a simulated Host.
+- `docs/` — user guide and developer reference.
+
+## License
+
+GPL-3.0-or-later. See [LICENSE](LICENSE) and [NOTICE](NOTICE).

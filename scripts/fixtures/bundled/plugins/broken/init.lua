@@ -1,1 +1,0 @@
-error("fixture broken plugin")

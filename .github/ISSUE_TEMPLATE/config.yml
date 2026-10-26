@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: CDIN Specification
+    url: https://github.com/cdin-editor/spec
+    about: Check shared CDIN contracts before proposing a cross-project API change.
+  - name: Security reports
+    url: https://github.com/cdin-editor/runtime/blob/main/SECURITY.md
+    about: Read the private reporting guidance before sharing a potential vulnerability.

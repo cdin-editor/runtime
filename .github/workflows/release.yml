@@ -1,0 +1,128 @@
+name: Release Runtime
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Validate version and test Runtime
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.release_meta.outputs.version }}
+
+    steps:
+      - name: Check out source and tags
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install Lua 5.4
+        uses: leafo/gh-actions-lua@v13
+        with:
+          luaVersion: "5.4.8"
+
+      - name: Validate release tag and changelog
+        id: release_meta
+        if: github.ref_type == 'tag'
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z]+([.-][0-9A-Za-z]+)*)?$ ]]; then
+            echo "Unsupported release tag: ${GITHUB_REF_NAME}" >&2
+            echo "Use vMAJOR.MINOR.PATCH, optionally followed by a SemVer prerelease." >&2
+            exit 1
+          fi
+
+          runtime_version="$(lua -e 'package.path = "lua/?.lua;lua/?/init.lua;" .. package.path; io.write(require("cdin.runtime.core.version").runtime)')"
+          if [[ "$runtime_version" != "$version" ]]; then
+            echo "Git-derived Runtime version (${runtime_version}) does not match tag (${version})." >&2
+            echo "Ensure the tag points to the intended commit and is available to git describe." >&2
+            exit 1
+          fi
+
+          if ! grep -Fq "## [${version}]" CHANGELOG.md; then
+            echo "CHANGELOG.md has no section for ${version}." >&2
+            exit 1
+          fi
+
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "Validated Runtime version: ${version}"
+
+      - name: Run tests
+        run: make check LUA=lua
+
+  package-and-publish:
+    name: Package source and publish GitHub Release
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out tagged source and history
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Create source archives and checksums
+        env:
+          PACKAGE_VERSION: ${{ needs.test.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf dist release-root
+          mkdir -p dist "release-root/cdin-runtime-${PACKAGE_VERSION}"
+          package_root="release-root/cdin-runtime-${PACKAGE_VERSION}"
+
+          git archive --format=tar HEAD | tar -xf - -C "$package_root"
+
+          # git archive does not contain .git, so embed the release tag as a
+          # generated Lua module. Source checkouts continue to use git describe.
+          printf 'return "%s"\n' "$PACKAGE_VERSION" > "$package_root/lua/cdin/runtime/core/release_metadata.lua"
+
+          tar -C release-root -czf "dist/cdin-runtime-${PACKAGE_VERSION}.tar.gz" "cdin-runtime-${PACKAGE_VERSION}"
+          (cd release-root && zip -qr "../dist/cdin-runtime-${PACKAGE_VERSION}.zip" "cdin-runtime-${PACKAGE_VERSION}")
+
+          (
+            cd dist
+            sha256sum "cdin-runtime-${PACKAGE_VERSION}.tar.gz" > "cdin-runtime-${PACKAGE_VERSION}.tar.gz.sha256"
+            sha256sum "cdin-runtime-${PACKAGE_VERSION}.zip" > "cdin-runtime-${PACKAGE_VERSION}.zip.sha256"
+          )
+
+      - name: Prepare release notes from CHANGELOG.md
+        env:
+          PACKAGE_VERSION: ${{ needs.test.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          heading="## [${PACKAGE_VERSION}]"
+          awk -v target="$heading" '
+            !found && index($0, target) == 1 { found = 1; print; next }
+            found && /^## / { exit }
+            found { print }
+          ' CHANGELOG.md > dist/release-notes.md
+          test -s dist/release-notes.md
+
+      - name: Publish release and attach source archives
+        uses: softprops/action-gh-release@v3
+        with:
+          name: CDIN Runtime ${{ github.ref_name }}
+          body_path: dist/release-notes.md
+          files: |
+            dist/*.tar.gz
+            dist/*.tar.gz.sha256
+            dist/*.zip
+            dist/*.zip.sha256
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          make_latest: ${{ !contains(github.ref_name, '-') }}

@@ -1,0 +1,58 @@
+name: Feature request
+description: Suggest an improvement to CDIN Runtime.
+title: "[Feature]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Runtime features should fit the [CDIN Specification](https://github.com/cdin-editor/spec) and keep the code small and understandable. For a large API or architecture change, start a discussion before implementing it.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: What are you trying to do that is currently difficult or impossible?
+      placeholder: Describe the concrete use case, not only the proposed implementation.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Explain what Runtime should do from the user's or integrator's point of view.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What workarounds or other approaches did you consider?
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - Runtime API or lifecycle
+        - Documents or editing behavior
+        - Commands or key bindings
+        - Views or UI model
+        - Configuration or workspace
+        - Extensions
+        - Developer experience or tests
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: spec
+    attributes:
+      label: Specification or compatibility notes
+      description: Link a relevant specification section, related issue, or explain if this changes an existing contract.
+    validations:
+      required: false

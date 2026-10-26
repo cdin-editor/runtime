@@ -1,0 +1,91 @@
+name: Bug report
+description: Report a reproducible problem in CDIN Runtime.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please search existing issues first. For a security vulnerability, do not open a public issue; follow [SECURITY.md](https://github.com/cdin-editor/runtime/blob/main/SECURITY.md).
+
+  - type: input
+    id: runtime-version
+    attributes:
+      label: Runtime version
+      description: The version from `lua/cdin/runtime/core/version.lua` or the release tag.
+      placeholder: "0.3.1-dev"
+    validations:
+      required: true
+
+  - type: input
+    id: lua-version
+    attributes:
+      label: Lua version
+      description: Include the output of `lua -v`.
+      placeholder: "Lua 5.4.8"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - Document client or transactions
+        - Commands or key bindings
+        - Configuration or workspace
+        - Views or UI model
+        - Extensions or sandbox
+        - Host API or lifecycle
+        - Tests or documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Describe the behavior you observed.
+      placeholder: A clear description of the problem.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Include a small Lua example or exact test command when possible.
+      placeholder: |
+        1. Create a Runtime with the test Host.
+        2. Run the operation.
+        3. Observe the result.
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: test-output
+    attributes:
+      label: Test output or error message
+      description: Add the relevant output from `make check` or the failing test. Remove secrets and private data.
+      render: text
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I checked for a similar open or closed issue.
+          required: true
+        - label: This report is not a public disclosure of a security vulnerability.
+          required: true

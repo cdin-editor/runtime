@@ -1,28 +1,69 @@
 name: Runtime CI
+
 on:
   push:
+    branches: [main, develop]
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: runtime-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  checks:
+  test:
+    name: ${{ matrix.id }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+        include:
+          - id: linux-lua54
+            os: ubuntu-latest
+            lua_version: "5.4.8"
+          - id: linux-lua55
+            os: ubuntu-latest
+            lua_version: "5.5.0"
+          - id: macos-lua54
+            os: macos-latest
+            lua_version: "5.4.8"
+          - id: windows-lua54
+            os: windows-latest
+            lua_version: "5.4.8"
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Check out source
+        uses: actions/checkout@v7
         with:
-          python-version: '3.12'
-      - uses: leafo/gh-actions-lua@v11
+          persist-credentials: false
+
+      # The Lua action builds from source on Windows and needs the MSVC tools.
+      - name: Set up MSVC tools
+        if: runner.os == 'Windows'
+        uses: step-security/msvc-dev-cmd@v1
+
+      - name: Install Lua
+        uses: leafo/gh-actions-lua@v13
         with:
-          luaVersion: '5.4'
-      - name: Structural checks
-        run: python scripts/check_structure.py
-      - name: Lua unit tests
-        run: lua tests/unit/run.lua
-      - name: Legacy command/keymap tests
-        run: lua ./scripts/test_commands.lua
-      - name: Legacy plugin/theme tests
-        run: lua ./scripts/test_lua.lua
+          luaVersion: ${{ matrix.lua_version }}
+
+      - name: Show interpreter version
+        run: lua -v
+
+      - name: Run unit and integration tests
+        if: runner.os != 'Windows'
+        run: make check LUA=lua
+
+      # GitHub's Windows runner does not guarantee GNU make. The test entry
+      # points are Lua scripts, so run those same commands directly there.
+      - name: Run unit and integration tests on Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          lua tests/unit/run.lua
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          lua tests/integration/run.lua
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

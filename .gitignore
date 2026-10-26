@@ -1,8 +1,9 @@
 .DS_Store
-Thumbs.db
-*.log
+*.swp
 *.tmp
-__pycache__/
-*.py[cod]
+*.log
 coverage/
-cdin-test-lua/
+build/
+.dist/
+dist/
+release-root/
