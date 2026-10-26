@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://github.com/cdin-editor/runtime/actions/workflows/ci.yml"><img src="https://github.com/cdin-editor/runtime/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
-  <a href="https://github.com/cdin-editor/runtime/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg" alt="License: GPL-3.0-or-later"></a>
+  <a href="https://github.com/cdin-editor/runtime/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg" alt="License: GPL-3.0"></a>
   <a href="https://www.lua.org/versions.html"><img src="https://img.shields.io/badge/Lua-5.4-blue.svg" alt="Lua 5.4"></a>
   <a href="https://github.com/cdin-editor/spec"><img src="https://img.shields.io/badge/CDIN-Specification-purple.svg" alt="CDIN specification"></a>
 </p>

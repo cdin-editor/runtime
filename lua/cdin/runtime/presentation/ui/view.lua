@@ -1,5 +1,6 @@
 local errors = require("cdin.runtime.core.error")
 local Selection = require("cdin.runtime.presentation.ui.selection")
+-- RT-008 | Reference: https://github.com/cdin-editor/spec
 -- A view is one editing surface over a Kernel document. Several views can
 -- refer to the same document while keeping different selections and scroll anchors.
 local View = {}
@@ -25,12 +26,13 @@ function View:set_cursor(offset)
 end
 
 function View:selection_blob()
-  return Selection.encode(self.selection)
+  return Selection.encode(self.selection, self.scroll_anchor)
 end
 
 function View:restore_selection_blob(blob)
-  local selection = Selection.decode(blob)
+  local selection, scroll_anchor = Selection.decode(blob)
   self:set_selection(selection.anchor, selection.caret)
+  self.scroll_anchor = scroll_anchor
 end
 
 function View:clamp_selection(length)
@@ -61,7 +63,9 @@ function View:apply_edit(edit)
   end
   local anchor = transform_offset(self.selection.anchor, edit)
   local caret = transform_offset(self.selection.caret, edit)
+  local scroll_anchor = transform_offset(self.scroll_anchor, edit)
   self:set_selection(anchor, caret)
+  self.scroll_anchor = scroll_anchor
 end
 
 function View:replace_selection(document, bytes, options)
@@ -72,7 +76,7 @@ function View:replace_selection(document, bytes, options)
     expected_version = options and options.expected_version,
     coalesce_key = options and options.coalesce_key or 0,
     undo_blob_before = before,
-    undo_blob_after = Selection.encode({ anchor = start_offset + #bytes, caret = start_offset + #bytes }),
+    undo_blob_after = Selection.encode({ anchor = start_offset + #bytes, caret = start_offset + #bytes }, self.scroll_anchor),
   })
   self:set_cursor(start_offset + #bytes)
   return result

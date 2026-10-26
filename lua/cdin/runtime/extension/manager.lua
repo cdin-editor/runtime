@@ -1,6 +1,8 @@
 local errors = require("cdin.runtime.core.error")
 local Sandbox = require("cdin.runtime.extension.sandbox")
 
+-- RT-013 | Reference: https://github.com/cdin-editor/spec
+-- Extension contributions are owner-scoped and removed at unload/failure.
 local Manager = {}
 Manager.__index = Manager
 
@@ -13,6 +15,9 @@ function Manager.new(options)
     config = options.config,
     log = options.log,
     ui = options.ui,
+    styles = options.styles,
+    themes = options.themes,
+    syntax = options.syntax,
     module_resolver = options.module_resolver,
     plugins = {},
     closed = false,
@@ -72,6 +77,31 @@ function Manager:_facade(name)
         return manager.ui:publish(model)
       end,
     },
+    styles = {
+      define = function(_, role, options)
+        options = options or {}; options.owner = name
+        return manager.styles:define(role, options)
+      end,
+    },
+    themes = {
+      register = function(_, theme_name, theme)
+        return manager.themes:register(theme_name, theme, { owner = name })
+      end,
+      activate = function(_, theme_name)
+        local entry = manager.themes.themes[theme_name]
+        if not entry or entry.owner ~= name then
+          errors.raise("PERMISSION_DENIED", "extension may activate only its own theme", {
+            theme = theme_name, requester = name,
+          })
+        end
+        return manager.themes:activate(theme_name)
+      end,
+    },
+    syntax = {
+      register = function(_, syntax_name, definition)
+        return manager.syntax:register(syntax_name, definition, { owner = name })
+      end,
+    },
   }
 end
 
@@ -103,6 +133,9 @@ function Manager:load(name, source, config, options)
     self.commands:remove_owner(name)
     self.keymap:remove_owner(name)
     self.events:off_owner(name)
+    if self.themes then self.themes:remove_owner(name) end
+    if self.syntax then self.syntax:remove_owner(name) end
+    if self.styles then self.styles:remove_owner(name) end
     error(errors.normalize(module, "BAD_EXTENSION", "load plugin:" .. name), 0)
   end
 
@@ -133,6 +166,9 @@ function Manager:unload(name)
   self.commands:remove_owner(name)
   self.keymap:remove_owner(name)
   self.events:off_owner(name)
+  if self.themes then self.themes:remove_owner(name) end
+  if self.syntax then self.syntax:remove_owner(name) end
+  if self.styles then self.styles:remove_owner(name) end
   self.plugins[name] = nil
 
   if not ok then
@@ -165,6 +201,9 @@ function Manager:shutdown()
     self.commands:remove_owner(name)
     self.keymap:remove_owner(name)
     self.events:off_owner(name)
+    if self.themes then self.themes:remove_owner(name) end
+    if self.syntax then self.syntax:remove_owner(name) end
+    if self.styles then self.styles:remove_owner(name) end
   end
   self.plugins = {}
 end

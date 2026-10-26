@@ -1,66 +1,137 @@
 # User Guide
 
-CDIN is an editor project. The Runtime is one part of it: the Lua code that
-controls editor behavior. This guide explains what it does and how to try the
-current code, even if you have never worked on CDIN before.
+This guide is for anyone who has just heard about CDIN and wants to understand
+what the Runtime is for, what it does, and how to work with it.
 
-## What does Runtime do?
+You do not need to know the CDIN architecture before starting here.
 
-When someone presses a key, Runtime works out which editor command should run.
-It keeps track of views, selections, settings and extensions. When a command
-needs to read or change a document, Runtime asks the Backend to do that work.
+## 1. What is the Runtime?
 
-The other parts have their own jobs:
+The Runtime is the part of CDIN that decides how the editor behaves.
 
-- **Frontend:** shows the editor and receives keyboard or mouse input.
-- **Runtime:** decides how the editor should respond.
-- **Backend:** connects Runtime to the Kernel and operating-system services.
-- **Kernel:** owns document text, changes, versions and undo/redo history.
+When you press a key, the Runtime finds the matching command. When that command
+needs to change a document, the Runtime asks the Backend to do it. The Runtime
+then updates its view of the editor and sends the new UI state back through the
+Backend so a Frontend can display it.
 
-Runtime does not draw the screen, manage files through direct operating-system
-calls, or keep a second permanent copy of a document.
+The Runtime is not the whole editor. It is one part of a larger system.
 
-## Can I use it as an editor now?
+## 2. How the parts work together
 
-Not yet. The Runtime code can be built and tested, but this repository does not
-yet include the production Backend adapter, a live Kernel connection or the
-Frontend Protocol connection needed for a complete CDIN editor.
+```text
+You press a key
+      |
+      v
+Frontend receives the key
+      |
+      v
+Runtime chooses a command
+      |
+      v
+Backend carries out the document request
+      |
+      v
+Kernel updates the document
+      |
+      v
+Runtime publishes the new editor state
+      |
+      v
+Frontend displays the update
+```
 
-You can still run the tests and try the example below. It uses a simulated Host
-that stands in for the services a real Backend will provide.
+Each part has one main job:
 
-## Run the tests
+| Part | What it does |
+| --- | --- |
+| Frontend | Shows text and controls, and reports user input. |
+| Runtime | Runs commands and key bindings; manages views, settings and extensions. |
+| Backend | Connects the Runtime to the Kernel and operating-system services. |
+| Kernel | Owns document text, edit history, versions and text operations. |
 
-Install Lua 5.4 and `make`. From the repository root, run:
+Keeping these jobs separate makes the Runtime easier to test and allows CDIN to
+support different frontends without putting window or terminal code into the
+editing logic.
+
+## 3. What the Runtime does
+
+The Runtime is responsible for editor behavior shared by frontends:
+
+- **Commands and key bindings.** It maps input to editor actions.
+- **Views and selections.** It tracks which view is active, where the cursor is,
+  and what text is selected. The Kernel does not own cursor or view state.
+- **Settings and project context.** It keeps validated editor settings and
+  lightweight information about the current project.
+- **Themes and syntax rules.** It stores style roles and syntax definitions;
+  the Frontend decides how to draw them.
+- **Extensions.** It provides a restricted environment for extension code and
+  tracks the commands and key bindings an extension adds.
+- **UI state.** It describes what views, panels, prompts and status information
+  exist. It does not choose pixel positions, wrap lines or draw text.
+
+## 4. What the Runtime does not do
+
+The Runtime does not keep its own permanent copy of the document text or its
+undo history. The Kernel is the source of truth for both. The Runtime asks the
+Backend for document operations and keeps only handles, versions, view state and
+small pieces of metadata.
+
+The Runtime also does not create windows, render text, access the filesystem
+through direct operating-system calls, or implement the Frontend Protocol
+transport. Those jobs belong to the Frontend or Backend.
+
+## 5. Can I run it as an editor today?
+
+Not by itself. The Runtime needs a Backend that implements its Host API. The
+production adapter connecting this Runtime to the real Kernel and Frontend
+Protocol is not included yet.
+
+For that reason, the current practical entry point is the test environment. It
+uses a simulated Host to exercise Runtime behavior without pretending that the
+real Kernel or GUI is already connected.
+
+## 6. Run the tests
+
+Install Lua 5.4 and `make`, then run these commands from the repository root:
+
+```sh
+make test
+```
+
+To run the complete local check target, use:
 
 ```sh
 make check
 ```
 
-To run just one group:
+If Lua 5.4 is installed under a different command name, pass it to `make`:
 
 ```sh
-make unit
-make integration
+make check LUA=lua
 ```
 
-The integration tests use a simulated Host, so they test Runtime behavior but
-not the real Kernel adapter or a running editor.
+Use that last command only when `lua` points to Lua 5.4. Running tests with a
+different interpreter can catch many ordinary bugs, but the target runtime is
+Lua 5.4.
 
-## Try a small example
+## 7. Follow a document through the Runtime
 
-The public entry point is `require("cdin.runtime")`. A Host is passed in when
-Runtime is created. The real CDIN Backend will provide this Host; this example
-uses the test version instead.
+The public Lua entry point is `require("cdin.runtime")`. A Backend creates the
+Host object and passes it into the Runtime. The Host object is the bridge to
+services such as document operations, UI publication and logging.
+
+The example below uses the test-only Host. It shows the Runtime lifecycle and
+how a document and view are created; it does not connect to a real file or GUI.
 
 ```lua
--- Run from the repository root.
+-- Run from the repository root. The extra paths make the test Host importable.
 package.path = "lua/?.lua;lua/?/init.lua;tests/?.lua;tests/?/init.lua;" .. package.path
 
 local Runtime = require("cdin.runtime")
 local FakeHost = require("support.fake_host")
 
-local runtime = Runtime.new({ host = FakeHost.new() })
+local host = FakeHost.new()
+local runtime = Runtime.new({ host = host })
 runtime:start()
 
 local document = runtime:open_document("Hello, CDIN\n", {
@@ -68,23 +139,67 @@ local document = runtime:open_document("Hello, CDIN\n", {
 })
 local view = runtime:create_view(document.id)
 
-local text, info = document:read(0, document.length)
-assert(text == "Hello, CDIN\n")
+local bytes, info = document:read(0, document.length)
+assert(bytes == "Hello, CDIN\n")
 assert(info.version == document.version)
 
+-- The real Backend will call this on the Lua owner thread when it is time
+-- to process document notifications.
 runtime:pump_notifications()
 runtime:shutdown()
 ```
 
-This example creates an in-memory test document. It does not open a real file or
-show a window. Do not include `tests/support/fake_host.lua` in a production
-build.
+The module search path in the example is for this repository's test fixture.
+Do not ship `tests/support/fake_host.lua` in a production build.
 
-## Where to go next
+## 8. Main Runtime operations
 
-- Read [Architecture](architecture/overview.md) for the responsibilities of each part.
-- Read the [Runtime Host API](contracts/runtime-host-api.md) if you are implementing the Backend.
-- Read the [Extension API](contracts/extension-api.md) if you are experimenting with extensions.
-- Read [Build and test](development/build-and-test.md) for the available test commands.
+The current development API exposes these entry points:
 
-The interfaces in this repository are still under development and may change.
+| Call | Purpose |
+| --- | --- |
+| `Runtime.new({ host = host })` | Create a Runtime instance with an injected Host. |
+| `runtime:start()` | Check the Host and register built-in behavior. |
+| `runtime:open_document(bytes, options)` | Ask the Host to create a document and return a lightweight client. |
+| `runtime:create_view(document_id, options)` | Create a view with its own selection and focus state. |
+| `runtime:handle_key(event)` | Turn a raw key event into a command. |
+| `runtime:pump_notifications()` | Process Kernel change notifications on the Lua owner thread. |
+| `runtime:save_document(id, path, options)` | Save through the Host's optional atomic-write service. |
+| `runtime:close_document(id)` | Close a document and detach its views. |
+| `runtime:shutdown()` | Stop the Runtime and release its owned resources. |
+
+The Host API is still provisional, and the production adapter is not included.
+These calls describe the current implementation, not a promise that its API is
+already stable for third-party applications.
+
+## 9. Add a command while developing
+
+Assume you have started a Runtime as in the previous example. Commands are
+registered by name. Owners make cleanup predictable: a feature can remove the
+commands and key bindings it registered without removing another feature's entries.
+
+```lua
+runtime.commands:register("example.hello", function()
+  runtime.host:log("info", "Hello from a Runtime command", {
+    source = "example.hello",
+  })
+  return true
+end, {
+  owner = "example",
+  description = "Example command",
+})
+
+runtime.keymap:bind("ctrl+alt+h", "example.hello", {
+  owner = "example",
+})
+```
+
+This is an internal development example, not yet a stable third-party API.
+The final extension-facing API is described in the [Extension API](contracts/extension-api.md).
+
+## 10. Where to go next
+
+- [Module boundaries](architecture/module-boundaries.md) — which part owns each responsibility.
+- [Runtime Host API](contracts/runtime-host-api.md) — the provisional interface provided by the Backend.
+- [Extension API](contracts/extension-api.md) — how extensions are loaded and restricted.
+- [Build and test](development/build-and-test.md) — tests and local development.

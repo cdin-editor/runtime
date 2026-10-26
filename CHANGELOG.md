@@ -1,8 +1,43 @@
 # Changelog
 
 This file records user-visible changes to CDIN Runtime. Runtime versions are
-read from Git tags; a release tag such as `v0.1.0` corresponds to the `0.1.0`
-entry below. There is no separate `VERSION` file.
+read from Git tags: a release tag such as `v0.2.0` corresponds to the `0.2.0`
+entry below. Release archives receive generated version metadata and do not need
+a separate `VERSION` file.
+
+## [0.2.0] — 2026-10-26
+
+### Added
+- Versioned selection snapshots that preserve each view's logical scroll
+  anchor while continuing to decode the earlier `CDINSEL1` format.
+- Owner-scoped cleanup for extension-defined style roles, themes, and syntax
+  definitions when an extension is unloaded or fails to initialize.
+- Extension-facing presentation capabilities for registering styles, themes,
+  and syntax definitions through the Runtime's restricted capability facade.
+- Integration tests that verify extension presentation resources are removed
+  after unload, and unit tests for selection snapshot compatibility and scroll
+  restoration.
+
+### Changed
+- View edits now transform the logical scroll anchor together with the
+  selection, keeping the view attached to the intended document position.
+- Documentation clarifies that opaque selection snapshots contain view metadata
+  only; canonical document content and undo/redo history remain Kernel-owned.
+- Release version discovery remains Git-tag based in source checkouts, while the
+  tagged release workflow embeds the exact version into source archives.
+
+### Verification
+- Unit tests passed: 79 assertions.
+- Simulated-Host integration tests passed: 72 assertions.
+- The tests do not prove integration with the production Backend, live Kernel,
+  or Frontend Protocol transport.
+
+### Known limitations
+- The production Backend-owned Host adapter and live Kernel integration are not
+  included.
+- Frontend Protocol transport and end-to-end UI integration are not included.
+- Compatibility with all legacy CDIN commands, UI behavior, and extensions has
+  not yet been demonstrated.
 
 ## [0.1.0] — 2026-10-26
 

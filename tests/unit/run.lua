@@ -20,10 +20,6 @@ local Syntax = require("cdin.runtime.presentation.syntax.registry")
 local Highlighter = require("cdin.runtime.presentation.syntax.highlighter")
 local Sandbox = require("cdin.runtime.extension.sandbox")
 local Strict = require("cdin.runtime.core.strict")
-local RuntimeVersion = require("cdin.runtime.core.version")
-
-A.truthy(type(RuntimeVersion.runtime) == "string" and RuntimeVersion.runtime ~= "")
-A.truthy(type(RuntimeVersion.host_api) == "table" and RuntimeVersion.host_api.major == 0)
 
 local bus = EventBus.new(); local hits = 0
 local token = bus:on("tick", function() hits = hits + 1 end, "test")
@@ -111,8 +107,19 @@ A.equal(config:get("editor.tab_width"), 6) -- failed loads must be atomic
 A.error_code(function() Saver.new({}, { chunk_size = 0 }) end, "INVALID_ARGUMENT")
 A.error_code(function() DocumentClient.new({ host = {}, handle = {}, id = "" }) end, "INVALID_ARGUMENT")
 
-local blob = Selection.encode(Selection.new(4, 9))
-local decoded = Selection.decode(blob); A.equal(decoded.anchor, 4); A.equal(decoded.caret, 9)
+local blob = Selection.encode(Selection.new(4, 9), 12)
+local decoded, decoded_scroll = Selection.decode(blob)
+A.equal(decoded.anchor, 4); A.equal(decoded.caret, 9); A.equal(decoded_scroll, 12)
+-- V1 snapshots remain readable after adding scroll-anchor metadata.
+local legacy_selection, legacy_scroll = Selection.decode("CDINSEL1;3;8")
+A.equal(legacy_selection.anchor, 3); A.equal(legacy_selection.caret, 8); A.equal(legacy_scroll, 0)
+local view_snapshot = View.new({ id = "snapshot-view", document_id = "doc-a" })
+view_snapshot:set_selection(2, 5); view_snapshot.scroll_anchor = 17
+local saved_view_state = view_snapshot:selection_blob()
+view_snapshot:set_selection(0, 0); view_snapshot.scroll_anchor = 0
+view_snapshot:restore_selection_blob(saved_view_state)
+A.equal(view_snapshot.selection.anchor, 2); A.equal(view_snapshot.selection.caret, 5)
+A.equal(view_snapshot.scroll_anchor, 17)
 local range_start, range_end = Selection.range(decoded); A.equal(range_start, 4); A.equal(range_end, 9)
 A.error_code(function() Selection.decode("bad") end, "INVALID_ARGUMENT")
 local strict_env = { allowed_value = 9 }

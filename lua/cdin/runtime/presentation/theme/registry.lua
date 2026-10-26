@@ -71,6 +71,17 @@ function Registry:snapshot()
   }
 end
 
+-- RT-013 | Reference: https://github.com/cdin-editor/spec
+function Registry:remove_owner(owner)
+  local names = {}
+  for name, entry in pairs(self.themes) do
+    if entry.owner == owner and name ~= "default" then names[#names + 1] = name end
+  end
+  table.sort(names)
+  for _, name in ipairs(names) do self:remove(name, owner) end
+  return #names
+end
+
 function Registry:list()
   local names = {}
   for name in pairs(self.themes) do

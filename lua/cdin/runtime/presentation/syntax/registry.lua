@@ -71,6 +71,23 @@ function Registry:register(name, definition, options)
   return true
 end
 
+-- RT-013 | Reference: https://github.com/cdin-editor/spec
+function Registry:remove_owner(owner)
+  local names = {}
+  for name, language in pairs(self.languages) do
+    if language.owner == owner and name ~= "plain" then names[#names + 1] = name end
+  end
+  table.sort(names)
+  for _, name in ipairs(names) do
+    local language = self.languages[name]
+    for _, extension in ipairs(language.extensions) do
+      if self.extensions[extension] == name then self.extensions[extension] = nil end
+    end
+    self.languages[name] = nil
+  end
+  return #names
+end
+
 function Registry:get(name)
   return self.languages[name]
 end

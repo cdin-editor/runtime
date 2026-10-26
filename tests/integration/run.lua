@@ -117,6 +117,21 @@ local plugin_ok, plugin_value = runtime.commands:execute("plugin.hello", {}, {})
 A.truthy(plugin_ok); A.equal(plugin_value, "hello")
 A.truthy(runtime.plugins:unload("sample"))
 A.falsy(runtime.commands:get("plugin.hello"))
+-- RT-013 | Reference: https://github.com/cdin-editor/spec
+-- Extension-owned presentation contributions must be removed on unload.
+local owned_plugin = [[return { init = function(core)
+  core.styles:define("plugin.sample", { category = "test" })
+  core.themes:register("plugin.sample", { ["plugin.sample"] = { role = "plugin.sample" } })
+  core.syntax:register("plugin-sample", { extensions = { "psamp" }, tokenize = function() return {} end })
+end }]]
+runtime.plugins:load("presentation-sample", owned_plugin, {})
+A.truthy(runtime.styles:has("plugin.sample"))
+A.truthy(runtime.themes.themes["plugin.sample"] ~= nil)
+A.truthy(runtime.syntax:get("plugin-sample") ~= nil)
+runtime.plugins:unload("presentation-sample")
+A.falsy(runtime.styles:has("plugin.sample"))
+A.falsy(runtime.themes.themes["plugin.sample"] ~= nil)
+A.falsy(runtime.syntax:get("plugin-sample") ~= nil)
 local command_takeover = [[return { init = function(core)
   core.commands:register("document.undo", function() return "hijacked" end, { overwrite = true })
 end }]]

@@ -1,17 +1,21 @@
 # Runtime documentation
 
-New to CDIN Runtime? Start with the [User Guide](user-guide.md).
+## Start here
 
-## Overview
+- [User Guide](user-guide.md) — what Runtime does and how to try it.
+- [Module boundaries](architecture/module-boundaries.md) — where responsibilities belong.
 
-- [Architecture](architecture/overview.md) — what the Runtime does and how it fits into CDIN.
-- [Build and test](development/build-and-test.md) — how to run the tests locally.
+## Using the Runtime
 
-## For developers
+- [Runtime Host API](contracts/runtime-host-api.md) — the interface Backend provides.
+- [Extension API](contracts/extension-api.md) — how Lua extensions are loaded.
+- [Runtime types](contracts/runtime-types.md) — shared data shapes.
+- [Errors and lifecycle](contracts/errors-and-lifecycle.md) — errors and object lifetime.
 
-- [Runtime Host API](contracts/runtime-host-api.md) — services the Backend provides to Runtime.
-- [Extension API](contracts/extension-api.md) — the current extension interface and its limits.
-- [Runtime types](contracts/runtime-types.md) — shared data structures.
-- [Errors and lifecycle](contracts/errors-and-lifecycle.md) — error handling and resource cleanup.
+## Developing and testing
 
-The Host and extension interfaces are still provisional. Check the [CDIN Specification](https://github.com/cdin-editor/spec) before relying on them as stable public APIs.
+- [Build and test](development/build-and-test.md) — local commands and current test scope.
+
+The [CDIN Specification](https://github.com/cdin-editor/spec) is authoritative
+when a local document and the cross-repository design disagree. Proposed
+specification items are not treated as accepted contracts by implementation alone.

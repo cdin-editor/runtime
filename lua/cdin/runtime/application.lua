@@ -53,6 +53,9 @@ function Runtime.new(options)
       default_log(host, level, message, fields)
     end,
     ui = host.ui,
+    styles = self.styles,
+    themes = self.themes,
+    syntax = self.syntax,
     module_resolver = options.module_resolver,
   })
   self.events:on("document.changed", function(payload)

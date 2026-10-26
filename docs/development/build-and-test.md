@@ -2,38 +2,52 @@
 
 ## Requirements
 
-- Lua 5.4
-- `make`
+- Lua 5.4 for the supported Runtime version.
+- `make` to run the test targets.
 
-Run commands from the repository root.
+Run the commands from the repository root. The test files set their Lua module
+paths themselves.
 
 ## Commands
 
 ```sh
-make unit         # test individual modules
-make integration  # test modules together using a simulated Host
-make test         # run unit and integration tests
-make check        # run the complete local check target
+make unit         # tests for individual modules
+make integration  # Runtime behavior using a simulated Host
+make test         # unit and integration tests
+make check        # the full local test target
 ```
 
-If Lua 5.4 is installed under a different command name, pass it to `make`:
+If your Lua 5.4 executable is named differently, pass the name to `make`:
 
 ```sh
 make check LUA=lua
 ```
 
-Use this only if `lua` is Lua 5.4. Other Lua versions may be useful for a quick
-smoke test, but Lua 5.4 is the supported target.
+Only use this when `lua` is Lua 5.4. Tests on another version are a useful smoke
+test but do not prove the supported runtime behaves correctly.
 
-## What do these tests cover?
+## Try the Runtime
 
-Unit tests check modules on their own. Integration tests check that modules
-work together with a simulated Host, including document operations, views,
-snapshots, transactions, notifications, saving and extension cleanup.
+Start with the [User Guide](../user-guide.md). Its example uses
+`tests/support/fake_host.lua`, which simulates the services expected from the
+Backend. It is intended for tests and learning, not for a production CDIN build.
 
-The simulated Host does not replace the real Backend. These tests do not prove
-Kernel ABI compatibility, native resource ownership, real file I/O or Frontend
-Protocol integration. Those parts need to be tested when the production
-adapter is added.
+The public module is `require("cdin.runtime")`. It installs strict-global
+checking before loading the application. Product boot code must not import the
+internal module `cdin.runtime.application` directly.
 
-For a first run, see the [User Guide](../user-guide.md).
+## What the tests cover
+
+- `tests/unit/run.lua` checks module behavior such as commands, key bindings,
+  configuration, project context, views, syntax rules, extension sandboxing and
+  structured errors.
+- `tests/integration/run.lua` checks how modules work together with the fake
+  Host, including document edits, undo/redo, snapshots, transactions,
+  notifications, saving, extension cleanup and shutdown.
+
+## What the tests do not prove
+
+The fake Host is not the real Kernel adapter. Passing local tests does not prove
+native handle ownership, Kernel ABI conformance, thread handoff, real file I/O,
+or Frontend Protocol integration. The Runtime must not be treated as integrated
+into CDIN until those checks are run against the production components.

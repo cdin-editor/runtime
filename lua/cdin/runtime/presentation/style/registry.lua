@@ -26,6 +26,7 @@ function Registry:define(name, options)
     name = name,
     description = options.description,
     category = options.category or "general",
+    owner = options.owner or "core",
   }
   self.roles[name] = role
   return tablex.copy(role)
@@ -38,6 +39,16 @@ end
 
 function Registry:has(name)
   return self.roles[name] ~= nil
+end
+
+-- RT-013 | Reference: https://github.com/cdin-editor/spec
+-- Remove only contributions owned by the unloading extension.
+function Registry:remove_owner(owner)
+  local removed = 0
+  for name, role in pairs(self.roles) do
+    if role.owner == owner then self.roles[name] = nil; removed = removed + 1 end
+  end
+  return removed
 end
 
 function Registry:list()
