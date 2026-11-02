@@ -9,6 +9,10 @@ permissions:
 
 jobs:
   release:
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
     name: Test, package and publish source archives
     uses: m-mdy-m/pipeline/.github/workflows/release.yml@main
     with:
