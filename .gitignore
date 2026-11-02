@@ -12,3 +12,4 @@ release-root/
 lua/cdin/runtime/core/release_metadata.lua
 .pipeline/
 .psx/
+*.rar
