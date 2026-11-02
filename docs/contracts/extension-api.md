@@ -15,7 +15,7 @@ An extension module returns a table with `init(core, config)` and optional
 return {
   init = function(core, config)
     core.commands:register("sample.hello", function()
-      core.log("info", "hello from an extension")
+      core:log("info", "hello from an extension")
       return true
     end, { description = "Example command" })
   end,
@@ -44,7 +44,13 @@ The current manager exposes limited capabilities:
   Extensions cannot request `overwrite`.
 - `core.events:on(event_name, callback)` for event subscriptions owned by that
   extension.
-- `core.log(level, message, fields?)` and `core.error(message, fields?)`.
+- `core:log(level, message, fields?)` and `core:error(message, fields?)` write
+  to the shared Kernel logger through Runtime (see Host API section 5). Levels
+  are `error`, `warn`, `info`, `debug`, `trace` and `fatal`; an unknown level is
+  recorded as a warning. Records are tagged with the component
+  `cdin-runtime.extension.<name>`. The component cannot be overridden, fields
+  must be flat strings, numbers or booleans, and extensions never touch a
+  logger, `io` or the console directly.
 - `core.unload_plugin(name)` for explicit unload.
 - `core.ui:publish(model)` is currently a narrow provisional passthrough and is
   expected to be replaced by validated extension UI contributions before a

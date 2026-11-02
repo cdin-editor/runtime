@@ -24,18 +24,41 @@ function M.new(options)
   options = options or {}
   local host = { logs = {}, published = {}, docs = {}, subscriptions = {}, next_doc = 0,
     next_subscription = 0, sequence = 0 }
+  -- Models the Backend's view of the Kernel logger (Kernel ABI 1.1.0). Records
+  -- are kept for assertions; `log_min_level` models the Kernel threshold and
+  -- `log_fails` models a Host whose log call raises.
+  local severity = { trace = 1, debug = 2, info = 3, warn = 4, error = 5, fatal = 6 }
   function host:info()
+    -- `logging = false` models a Host that omits the descriptor entirely.
+    local logging = options.logging
+    if logging == nil then
+      logging = {
+        provider = "cdin-kernel",
+        levels = { "error", "warn", "info", "debug", "trace", "fatal" },
+        max_message_bytes = options.max_message_bytes or 16384,
+      }
+    elseif logging == false then
+      logging = nil
+    end
     return {
-      host_api = options.host_api or { major = 0, minor = 1, patch = 0 },
-      kernel_abi = options.kernel_abi or { major = 1, minor = 0, patch = 0 },
+      host_api = options.host_api or { major = 0, minor = 2, patch = 0 },
+      kernel_abi = options.kernel_abi or { major = 1, minor = 1, patch = 0 },
       extension_contract = options.extension_contract or { major = 1, minor = 0 },
       frontend_protocol = options.frontend_protocol or { major = 0, minor = 1, patch = 0 },
       features = options.features or { documents = true, notifications = true, snapshots = true, transactions = true, batch_edits = true, literal_search = true, ui_model = true, logging = true },
       kernel_features = { transactions = true, snapshots = true, notifications = true, batch = true, search_literal = true, search_bytes = true, search_regex = false },
+      logging = logging,
     }
   end
   function host:log(level, message, fields)
+    if options.log_fails then error("simulated logger failure") end
+    -- The real Backend maps these names to CDIN_LOG_* values; anything else
+    -- would be an INVALID_ARGUMENT from the Kernel.
+    if not severity[level] then errors.raise("INVALID_ARGUMENT", "unknown log level: " .. tostring(level)) end
+    if type(message) ~= "string" then errors.raise("INVALID_ARGUMENT", "log message must be a string") end
+    if severity[level] < (severity[options.log_min_level or "trace"]) then return false end
     self.logs[#self.logs + 1] = { level = level, message = message, fields = tablex.copy(fields or {}) }
+    return true
   end
   host.ui = {}
   function host.ui:publish(model) host.published[#host.published + 1] = tablex.copy(model); return true end

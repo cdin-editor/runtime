@@ -14,11 +14,15 @@ It is not yet ready to replace the existing Lua core in a runnable CDIN build.
 - Logical views, selections and a data-only UI model.
 - Theme, style and syntax registries.
 - An extension manager with owner-scoped cleanup and a restricted Lua environment.
-- Unit and simulated-Host integration tests.
+- Logging through the Kernel's single logger, via Host API `host:log` (Host API
+  0.2.0, Kernel ABI 1.1.0). Runtime has no logger of its own.
+- Unit and simulated-Host integration tests, plus static boundary checks.
+- Pipeline, PSX and gix project tooling.
 
 ## Still needed
 
-- The production Backend adapter for the Host API.
+- The production Backend adapter for the Host API, including the
+  `host:log` → `cdin_kernel_log` mapping (tested today only against a fake Host).
 - Tests against the real Kernel C ABI, including ownership and failure cases.
 - Connection to the Frontend Protocol and a working frontend.
 - Compatibility tests for behaviors that users rely on in the current CDIN code.

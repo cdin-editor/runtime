@@ -1,4 +1,4 @@
-name: Runtime CI
+name: CI
 
 on:
   push:
@@ -14,16 +14,31 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
+  # Main gate. Pipeline has no Lua toolchain, so `custom` is used and the
+  # `deps` task in pipeline.toml installs Lua. The `check` task runs the unit
+  # and integration tests plus scripts/check-boundaries.sh.
+  quality:
+    name: Test and boundary checks with Pipeline
+    uses: m-mdy-m/pipeline/.github/workflows/ci.yml@main
+    with:
+      language: custom
+      pipeline-task: check
+      pipeline-ref: main
+
+  docs:
+    name: Documentation and workflow validation
+    uses: m-mdy-m/pipeline/.github/workflows/docs-check.yml@main
+
+  # Pipeline's CI runs on Linux with the distribution's Lua 5.4. Runtime is
+  # portable Lua, so keep the interpreters and operating systems it must also
+  # support. The Linux/Lua 5.4 case is covered by `quality` above.
+  portability:
     name: ${{ matrix.id }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - id: linux-lua54
-            os: ubuntu-latest
-            lua_version: "5.4.8"
           - id: linux-lua55
             os: ubuntu-latest
             lua_version: "5.5.0"
@@ -33,7 +48,6 @@ jobs:
           - id: windows-lua54
             os: windows-latest
             lua_version: "5.4.8"
-
     steps:
       - name: Check out source
         uses: actions/checkout@v7

@@ -8,7 +8,7 @@
 
 ## What changed?
 
-- 
+-
 
 ## Testing
 

@@ -25,3 +25,8 @@ frontend. Keep these rules in mind when changing code.
 11. Write public guides for someone who is new to CDIN. Explain the purpose
     first, then introduce API names. Put low-level details in contract pages.
 12. Do not claim real Kernel or Frontend integration based on fake-Host tests.
+13. Log only through `cdin.runtime.core.log` (Host API `host:log`, which reaches
+    the Kernel's single logger). Do not bind `log.c`, create another logger,
+    call `print` or write to `io.stdout`/`io.stderr`. Log ids, versions, sizes
+    and error codes, never document bytes or file paths. `make boundary`
+    enforces the mechanical parts.

@@ -42,6 +42,8 @@ how to draw the UI, including pixel positions, font shaping and line wrapping.
 - `presentation/` — views, UI state, themes, styles and syntax rules.
 - `extension/` — extension loading and cleanup.
 - `application.lua` — creates the parts and manages Runtime startup/shutdown.
+- `core/log.lua` — the logging facade. Records go to `host:log`, then through the
+  Backend to the Kernel's one logger; Runtime owns no logger and prints nothing.
 
 ## Current implementation
 

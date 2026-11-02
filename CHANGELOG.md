@@ -5,9 +5,50 @@ read from Git tags: a release tag such as `v0.2.0` corresponds to the `0.2.0`
 entry below. Release archives receive generated version metadata and do not need
 a separate `VERSION` file.
 
+## [0.3.0] — 2026-11-02
+
+### Added
+
+- Kernel-backed logging. Runtime now sends every record through
+  `host:log(level, message, fields)` and the Backend forwards it to the one
+  logger the Kernel owns (`cdin_kernel_log`, Kernel ABI 1.1.0). Runtime does not
+  bind `m-mdy-m/log.c`, load native code, or write to stdout/stderr.
+- `cdin.runtime.core.log`: a bounded, never-raising logger facade with the six
+  Kernel levels (`error`, `warn`, `info`, `debug`, `trace`, `fatal`),
+  sub-components (`cdin-runtime.documents`, `cdin-runtime.extension.<name>`),
+  UTF-8-safe message truncation, scalar-only fields, and drop/failure counters
+  (`runtime:log_stats()`).
+- Lifecycle records for startup, shutdown, documents, saves and extensions.
+  Records carry ids, versions and sizes; document content and file paths are
+  never logged.
+- Host API `info.logging` descriptor (`provider`, `levels`, `max_message_bytes`).
+- Pipeline, PSX and gix tooling: `pipeline.toml` (tasks `deps`, `unit`,
+  `integration`, `boundary`, `check`, `package`), `psx.yml`, `.gix/config.default`
+  with `scripts/init-git-flow.sh`, and `scripts/check-boundaries.sh`, a static
+  guard against console output, native code and a second logger.
+- Release archives are verified after build (`scripts/test-package.sh`).
+
+### Changed
+
+- **Breaking (provisional contract):** Host API is now 0.2.0 and requires Kernel
+  ABI 1.1.0 or newer. A Host that reports ABI 1.0.x, omits `info.logging`, or
+  names a logger provider other than `cdin-kernel` is rejected with
+  `HOST_API_MISMATCH`.
+- Extension `core:log` and `core:error` now log under the extension's own
+  component. The `component` field is owned by the logger and cannot be set by
+  callers; unknown levels are recorded as warnings.
+- `.github/workflows/ci.yml` and `release.yml` now call the shared
+  `m-mdy-m/pipeline` workflows.
+
+### Removed
+
+- `lua/cdin/runtime/core/release_metadata.lua` was committed by mistake with a
+  stale version. It is generated during release packaging and is now ignored.
+
 ## [0.2.0] — 2026-10-26
 
 ### Added
+
 - Versioned selection snapshots that preserve each view's logical scroll
   anchor while continuing to decode the earlier `CDINSEL1` format.
 - Owner-scoped cleanup for extension-defined style roles, themes, and syntax
@@ -19,6 +60,7 @@ a separate `VERSION` file.
   restoration.
 
 ### Changed
+
 - View edits now transform the logical scroll anchor together with the
   selection, keeping the view attached to the intended document position.
 - Documentation clarifies that opaque selection snapshots contain view metadata
@@ -27,12 +69,14 @@ a separate `VERSION` file.
   tagged release workflow embeds the exact version into source archives.
 
 ### Verification
+
 - Unit tests passed: 79 assertions.
 - Simulated-Host integration tests passed: 72 assertions.
 - The tests do not prove integration with the production Backend, live Kernel,
   or Frontend Protocol transport.
 
 ### Known limitations
+
 - The production Backend-owned Host adapter and live Kernel integration are not
   included.
 - Frontend Protocol transport and end-to-end UI integration are not included.
@@ -42,6 +86,7 @@ a separate `VERSION` file.
 ## [0.1.0] — 2026-10-26
 
 ### Added
+
 - Introduced the Lua Runtime as a distinct CDIN component, with
   `require("cdin.runtime")` as its public entry point.
 - Added application startup and shutdown lifecycle handling, a Host contract,
@@ -72,6 +117,7 @@ a separate `VERSION` file.
   of Conduct.
 
 ### Changed
+
 - Reorganized the Runtime around clear responsibilities instead of carrying
   forward the old `data/core/` layout.
 - Kept document text, document versions, snapshots, and undo/redo history as
@@ -89,6 +135,7 @@ a separate `VERSION` file.
   Release packaging generates metadata for archives that do not contain `.git`.
 
 ### Removed
+
 - Removed the standalone `VERSION` file so the version is not maintained in two
   places.
 - Removed the copied legacy `data/core/` tree and obsolete scripts/reports from
@@ -97,11 +144,13 @@ a separate `VERSION` file.
   diagrams in favor of concise, task-focused documentation.
 
 ### Verification
+
 - Unit tests pass: 74 assertions.
 - Simulated-Host integration tests pass: 66 assertions.
 - Lua syntax checks and the User Guide example were verified during development.
 
 ### Known limitations
+
 - The production Backend adapter, live Kernel connection, and Frontend Protocol
   transport are not included yet, so this is not a complete runnable editor.
 - The Runtime Host API and semantic UI model remain provisional and may change

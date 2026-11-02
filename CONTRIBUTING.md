@@ -83,6 +83,7 @@ make unit          # isolated module tests
 make integration   # modules working together with a simulated Host
 make test          # unit and integration tests
 make check         # the full local test target
+make boundary      # static guards (needs bash and grep)
 ```
 
 When changing behavior, add a test that fails before the fix and passes after
@@ -200,8 +201,10 @@ For a release:
 1. Add a section for the intended version to `CHANGELOG.md`.
 2. Create and push a tag using the `vMAJOR.MINOR.PATCH` format, or a supported
    prerelease tag such as `v1.2.3-rc.1`.
-3. Let the Release workflow verify that the tag-derived version matches the
-   changelog before it creates the source archives.
+3. Let the Release workflow (Pipeline's shared release workflow) run the test
+   gate, verify that the tag, the git-derived version and the changelog agree
+   (`scripts/package-release.sh`), build the archives, and unpack and re-test
+   them (`scripts/test-package.sh`) before publishing.
 
 The workflow adds generated release metadata to the archives because release
 archives do not contain the `.git` directory. That generated module is not part

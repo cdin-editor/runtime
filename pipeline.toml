@@ -1,0 +1,40 @@
+schema_version = 1
+
+[project]
+name = "cdin-runtime"
+description = "CDIN Runtime (pure Lua): tests and boundary checks. Logging goes to the Kernel logger through Host API."
+
+[defaults]
+timeout_seconds = 300
+fail_fast = true
+
+# Runtime is pure Lua and links nothing, so the only dependency is an interpreter.
+[tasks.deps]
+description = "Ensure a Lua 5.4+ interpreter is available"
+command = ["bash", "scripts/install-deps.sh"]
+timeout_seconds = 600
+
+[tasks.unit]
+description = "Unit tests (logger, Host contract, document and extension modules)"
+command = ["bash", "scripts/with-lua.sh", "unit"]
+depends_on = ["deps"]
+
+[tasks.integration]
+description = "Integration tests against the fake Host, including Kernel-logger routing"
+command = ["bash", "scripts/with-lua.sh", "integration"]
+depends_on = ["unit"]
+
+[tasks.boundary]
+description = "Static guards: no console output, no native code, no second logger"
+command = ["bash", "scripts/check-boundaries.sh"]
+
+[tasks.check]
+description = "Full gate used by CI and release"
+command = ["bash", "-c", "echo 'cdin-runtime: all checks passed'"]
+depends_on = ["integration", "boundary"]
+
+[tasks.package]
+description = "Build the source release archives into dist/"
+command = ["bash", "scripts/package-release.sh"]
+depends_on = ["check"]
+timeout_seconds = 600

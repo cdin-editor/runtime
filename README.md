@@ -15,7 +15,6 @@
 
 <p align="center">The Lua layer that coordinates editor behavior in CDIN.</p>
 
-
 CDIN Runtime contains the editor behavior: commands, key bindings, views, settings, workspace state and extensions. It is written in Lua and is designed to work with the other parts of CDIN rather than replace them.
 
 ## What is Runtime?
@@ -48,6 +47,11 @@ git clone https://github.com/cdin-editor/runtime.git
 cd runtime
 make check
 ```
+
+Run the static guards (no console output, no native code, no second logger) with
+`make boundary`. CI and releases run through
+[m-mdy-m/pipeline](https://github.com/m-mdy-m/pipeline); see
+[Build and test](docs/development/build-and-test.md).
 
 Run one test group at a time when debugging:
 

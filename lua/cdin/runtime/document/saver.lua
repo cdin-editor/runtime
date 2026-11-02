@@ -1,12 +1,16 @@
 local errors = require("cdin.runtime.core.error")
+local Log = require("cdin.runtime.core.log")
 
 -- Save a version-pinned Kernel snapshot through the Backend's atomic writer.
 -- Chunking bounds temporary memory use for large documents.
 local Saver = {}
 Saver.__index = Saver
 
-function Saver.new(host, options)
+-- `deps.logger` is optional. Save records contain sizes and versions only; the
+-- destination path is the caller's data and is not written to the shared log.
+function Saver.new(host, options, deps)
   options = options or {}
+  deps = deps or {}
   if type(options) ~= "table" then
     errors.raise("INVALID_ARGUMENT", "saver options must be a table")
   end
@@ -19,6 +23,7 @@ function Saver.new(host, options)
   return setmetatable({
     host = host,
     chunk_size = chunk_size,
+    log = deps.logger or Log.null(),
   }, Saver)
 end
 
@@ -83,11 +88,19 @@ function Saver:save(document, path, options)
   end
   local close_ok, close_error = pcall(snapshot.close, snapshot)
   if not ok then
-    error(errors.normalize(result, "INTERNAL", "save document"), 0)
+    local failure = errors.normalize(result, "INTERNAL", "save document")
+    self.log:error("document save failed", { document_id = document.id, code = failure.code })
+    error(failure, 0)
   end
   if not close_ok then
     error(errors.normalize(close_error, "INTERNAL", "release save snapshot"), 0)
   end
+  self.log:info("document saved", {
+    document_id = document.id,
+    version = result.version,
+    bytes = result.bytes_written,
+    clean = result.clean,
+  })
   return result
 end
 

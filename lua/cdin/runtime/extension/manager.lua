@@ -1,5 +1,6 @@
 local errors = require("cdin.runtime.core.error")
 local Sandbox = require("cdin.runtime.extension.sandbox")
+local Log = require("cdin.runtime.core.log")
 
 -- RT-013 | Reference: https://github.com/cdin-editor/spec
 -- Extension contributions are owner-scoped and removed at unload/failure.
@@ -13,7 +14,7 @@ function Manager.new(options)
     keymap = options.keymap,
     events = options.events,
     config = options.config,
-    log = options.log,
+    logger = options.logger or Log.null(),
     ui = options.ui,
     styles = options.styles,
     themes = options.themes,
@@ -26,6 +27,9 @@ end
 
 function Manager:_facade(name)
   local manager = self
+  -- Records written by an extension carry its own component and cannot name
+  -- another one: the logger owns the `component` field.
+  local logger = self.logger:child(name)
 
   return {
     commands = {
@@ -64,10 +68,10 @@ function Manager:_facade(name)
       end,
     },
     log = function(_, level, message, fields)
-      return manager.log(level, message, fields or { plugin = name })
+      return logger:log(level, message, fields)
     end,
     error = function(_, message, fields)
-      return manager.log("error", message, fields or { plugin = name })
+      return logger:error(message, fields)
     end,
     unload_plugin = function(_, plugin_name)
       return manager:unload(plugin_name)
@@ -136,7 +140,9 @@ function Manager:load(name, source, config, options)
     if self.themes then self.themes:remove_owner(name) end
     if self.syntax then self.syntax:remove_owner(name) end
     if self.styles then self.styles:remove_owner(name) end
-    error(errors.normalize(module, "BAD_EXTENSION", "load plugin:" .. name), 0)
+    local failure = errors.normalize(module, "BAD_EXTENSION", "load plugin:" .. name)
+    self.logger:child(name):error("extension failed to load", { code = failure.code })
+    error(failure, 0)
   end
 
   local record = {
@@ -147,6 +153,7 @@ function Manager:load(name, source, config, options)
     source = options.source or "explicit",
   }
   self.plugins[name] = record
+  self.logger:child(name):info("extension loaded", { source = record.source })
   return record
 end
 
@@ -172,8 +179,11 @@ function Manager:unload(name)
   self.plugins[name] = nil
 
   if not ok then
-    error(errors.normalize(failure, "BAD_EXTENSION", "plugin unload:" .. name), 0)
+    local normalized = errors.normalize(failure, "BAD_EXTENSION", "plugin unload:" .. name)
+    self.logger:child(name):error("extension unload failed", { code = normalized.code })
+    error(normalized, 0)
   end
+  self.logger:child(name):info("extension unloaded")
   return true
 end
 

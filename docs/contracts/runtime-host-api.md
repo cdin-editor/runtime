@@ -1,4 +1,4 @@
-# Runtime Host API 0.1.0
+# Runtime Host API 0.2.0
 
 **Status:** provisional development contract; not a stable public API.
 
@@ -7,9 +7,10 @@ the native Kernel adapter, OS services and frontend transport. Runtime must not
 load the Kernel shared library, call C ABI symbols, inspect Kernel structs or
 keep a shadow copy of document bytes/history.
 
-The contract is aligned with CDIN Kernel C ABI `1.0.0` (Kernel package `1.1.0`)
-and CDIN Spec `1.1.0` / compatibility baseline `1.0.0`. It does not claim that
-the production Backend adapter already exists.
+The contract is aligned with CDIN Kernel C ABI `1.1.0` (Kernel package `1.2.1`)
+and CDIN Spec `1.1.0`. ABI `1.1.0` is the first release with the Kernel logging
+API that section 5 depends on. It does not claim that the production Backend
+adapter already exists.
 
 ## 1. Host descriptor and version negotiation
 
@@ -17,8 +18,8 @@ the production Backend adapter already exists.
 
 ```lua
 {
-  host_api = { major = 0, minor = 1, patch = 0 },
-  kernel_abi = { major = 1, minor = 0, patch = 0 },
+  host_api = { major = 0, minor = 2, patch = 0 },
+  kernel_abi = { major = 1, minor = 1, patch = 0 },
   extension_contract = { major = 1, minor = 0 },
   frontend_protocol = { major = 0, minor = 1, patch = 0 },
   features = {
@@ -31,18 +32,23 @@ the production Backend adapter already exists.
     batch = true, search_literal = true, search_bytes = true,
     search_regex = false,
   },
+  logging = {
+    provider = "cdin-kernel",
+    levels = { "error", "warn", "info", "debug", "trace", "fatal" },
+    max_message_bytes = 16384,
+  },
 }
 ```
 
 Because Host API `0.x` is provisional, the runtime requires an exact host
-major/minor match (`0.1`). Kernel ABI requires major `1`, minor `>= 0`; the
+major/minor match (`0.2`). Kernel ABI requires major `1`, minor `>= 1`; the
 extension contract requires major `1`. The runtime accepts only a frontend
 protocol version compatible with its configured major/minor floor and relies
 on Backend capability negotiation for optional transports.
 
 The Backend must query `cdin_abi_version()` and `cdin_features()` before
 creating the Lua Runtime and report the negotiated result accurately. For
-Kernel ABI 1.0.0, `search_regex` must be `false`; advertising unsupported regex
+Kernel ABI 1.1.0, `search_regex` must be `false`; advertising unsupported regex
 is a contract violation. Runtime never performs native version queries itself.
 
 ## 2. Calling conventions and error mapping
@@ -94,7 +100,7 @@ Backend-created Lua values and may be userdata.
 ## 3. Required `host.documents` service
 
 The service must implement these methods. The runtime assumes Kernel mutations
-are synchronous for ABI 1.0.0.
+are synchronous for ABI 1.1.0.
 
 ### Document lifecycle and reads
 
@@ -167,7 +173,7 @@ on the Lua owner thread.
 `search(handle, { pattern, mode, direction, from, bound, limit, expected_version, case_insensitive, any_newline, step_limit }) -> result`
 
 Supported modes are `literal` and `bytes`. `regex` must return `UNSUPPORTED`
-for Kernel ABI 1.0.0. Kernel resource-limit failures are recoverable outcomes,
+for Kernel ABI 1.1.0. Kernel resource-limit failures are recoverable outcomes,
 not internal Runtime crashes.
 
 ## 4. Required `host.ui` service
@@ -180,10 +186,51 @@ not draw. The current model schema is `cdin.ui-model.v1` and remains provisional
 
 ## 5. Required logging service
 
-`host:log(level, message, fields?) -> true`
+CDIN has one logger: the Kernel's (`m-mdy-m/log.c`, owned by the Kernel and
+reached through the C ABI). Runtime does not bind `log.c`, create a logger, or
+choose an output. The Backend, Frontend and `cdin` write to the same Kernel
+logger and Runtime reaches it through this service.
 
-Runtime does not write to stdout/stderr on its own initiative. Logging failures
-must not be used to mask a more important operation failure.
+`host:log(level, message, fields?) -> boolean`
+
+- `level` is one of `error`, `warn`, `info`, `debug`, `trace`, `fatal`. The
+  Backend maps each name to the Kernel value (`CDIN_LOG_ERROR` 0, `WARN` 1,
+  `INFO` 2, `DEBUG` 3, `TRACE` 4, `FATAL` 5). The numeric values are not ordered
+  by severity, so any threshold comparison must use severity order, not the
+  numbers.
+- `message` is a UTF-8 string no longer than `info.logging.max_message_bytes`.
+  Runtime truncates longer messages itself on a character boundary.
+- `fields` is a flat table of strings, numbers and booleans (at most 16 entries;
+  string values at most 256 bytes). The reserved field `component` names the
+  record's source and is always set by Runtime.
+- The Backend forwards the record to `cdin_kernel_log(kernel, level, component,
+  message)`. It may append the remaining fields to the message text; the Kernel
+  API has no structured fields. It must not create another logger.
+- Return `true` when the Kernel accepted the record and `false` when it was not
+  recorded (below the Kernel threshold, or `CDIN_UNSUPPORTED` because logging is
+  disabled). Dropping a record is not an error and must not raise. Raising is
+  reserved for an invalid call (unknown level, non-string message).
+- `info.logging.provider` must equal `"cdin-kernel"`. A Host that names another
+  provider, omits the descriptor, lacks a level, or reports a
+  `max_message_bytes` outside `1..1048576` is rejected at startup with
+  `HOST_API_MISMATCH`, as is any Kernel ABI below `1.1.0`.
+
+Components are how layers are told apart in the shared logger:
+
+| Source | Component |
+|---|---|
+| Kernel | `cdin-kernel` (default) |
+| Runtime | `cdin-runtime`, `cdin-runtime.documents`, `cdin-runtime.saver`, `cdin-runtime.extension`, `cdin-runtime.extension.<name>` |
+| Backend / Frontend / `cdin` | `cdin-backend`, `cdin-frontend`, `cdin` (convention; owned by those projects) |
+
+Known limitation: `cdin_kernel_log` always stamps the layer `kernel` and the
+`[KERNEL]` prefix, so records from Runtime are distinguished by component only.
+A per-layer prefix would need an additive Kernel ABI change.
+
+Runtime never writes to stdout/stderr. A logging failure never changes the
+result of the operation being logged: the Runtime logger catches Host errors and
+counts them (`runtime:log_stats()`). Records contain ids, versions, sizes and
+error codes, never document bytes or file paths.
 
 ## 6. Optional atomic-save service
 
@@ -200,7 +247,7 @@ at startup but required for the built-in `document.save` command.
 
 ## 7. Kernel ABI mapping
 
-| Runtime operation | Kernel ABI 1.0.0 symbol family |
+| Runtime operation | Kernel ABI 1.1.0 symbol family |
 |---|---|
 | `create` / `close` | `cdin_doc_create` / `cdin_doc_close` |
 | `read` | `cdin_text_version`, `cdin_text_len`, `cdin_text_read` |
@@ -211,6 +258,7 @@ at startup but required for the built-in `document.save` command.
 | dirty state | `cdin_doc_mark_clean`, `cdin_doc_is_clean` plus Backend-side conditional operation |
 | notification | `cdin_notif_subscribe`, `cdin_notif_unsubscribe`, `cdin_notif_drain` |
 | search | `cdin_search`; literal/bytes only |
+| logging | `cdin_kernel_log` (the Backend configures the logger with `cdin_log_options_init`, `cdin_kernel_set_log_options`, `cdin_kernel_set_log_level`) |
 
 The Backend adapter must use only the public `include/cdin/kernel.h` header and
 must run the Kernel's conformance vectors through the adapter before declaring
@@ -218,7 +266,7 @@ this integration complete.
 
 ## 8. Stability gate
 
-Host API `0.1.0` is not a stable external contract. A reviewed stability decision
+Host API `0.2.0` is not a stable external contract. A reviewed stability decision
 requires a complete Backend/C adapter, ABI-to-Lua status mapping tests, live
 create/edit/read/notify/undo/redo/close tests against the real Kernel, lifecycle
 failure injection, Lua 5.4 tests, headless Frontend Protocol integration, and an

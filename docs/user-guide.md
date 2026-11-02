@@ -180,7 +180,9 @@ commands and key bindings it registered without removing another feature's entri
 
 ```lua
 runtime.commands:register("example.hello", function()
-  runtime.host:log("info", "Hello from a Runtime command", {
+  -- Runtime logs go to the Kernel's logger through the Host; use a component
+  -- name that says where the record came from.
+  runtime.log:child("example"):info("Hello from a Runtime command", {
     source = "example.hello",
   })
   return true

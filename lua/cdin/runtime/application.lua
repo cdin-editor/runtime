@@ -1,4 +1,5 @@
 local errors = require("cdin.runtime.core.error")
+local Log = require("cdin.runtime.core.log")
 local compatibility = require("cdin.runtime.host.contract")
 local EventBus = require("cdin.runtime.core.event_bus")
 local CommandRegistry = require("cdin.runtime.command.registry")
@@ -22,12 +23,16 @@ local PluginManager = require("cdin.runtime.extension.manager")
 local Runtime = {}
 Runtime.__index = Runtime
 
-local function default_log(host, level, message, fields)
-  host:log(level, message, fields or {})
+local function format_version(value)
+  return string.format("%d.%d.%d", value.major, value.minor, value.patch or 0)
 end
 
 -- Construct an inert Runtime. Host validation and core registration happen in
 -- start(), so a failed start can roll back without exposing a half-ready app.
+--
+-- Logging: Runtime has no logger of its own. `self.log` forwards records to the
+-- Host, which forwards them to the Kernel's logger. `options.log_level` is only
+-- a local pre-filter; the Kernel threshold remains authoritative.
 function Runtime.new(options)
   options = options or {}
   if type(options.host) ~= "table" then errors.raise("INVALID_ARGUMENT", "Runtime.new requires a host object") end
@@ -36,8 +41,9 @@ function Runtime.new(options)
     events = EventBus.new(), commands = CommandRegistry.new(), keymap = Keymap.new(),
     config = options.config or ConfigDefaults.new_store(), next_view_id = 0,
     options = options }, Runtime)
-  self.documents = DocumentManager.new(host, self.events)
-  self.saver = Saver.new(host, options.saver)
+  self.log = Log.new(host, { component = Log.default_component, min_level = options.log_level })
+  self.documents = DocumentManager.new(host, self.events, { logger = self.log:child("documents") })
+  self.saver = Saver.new(host, options.saver, { logger = self.log:child("saver") })
   self.project = ProjectContext.new(self.events)
   self.styles = StyleRegistry.new()
   self.themes = ThemeRegistry.new(self.styles)
@@ -49,9 +55,7 @@ function Runtime.new(options)
     keymap = self.keymap,
     events = self.events,
     config = self.config,
-    log = function(level, message, fields)
-      default_log(host, level, message, fields)
-    end,
+    logger = self.log:child("extension"),
     ui = host.ui,
     styles = self.styles,
     themes = self.themes,
@@ -87,6 +91,8 @@ function Runtime:start()
   self.state = "starting"
   local ok, result = pcall(function()
     self.info = compatibility.validate(self.host)
+    -- Message bounds come from the Kernel logger through the Host descriptor.
+    self.log:configure({ max_message_bytes = self.info.logging.max_message_bytes })
     self.styles:define("text.default", { description = "Default text", category = "text" })
     self.styles:define("text.selection", { description = "Selected text", category = "text" })
     self.styles:define("syntax.keyword", { description = "Language keyword", category = "syntax" })
@@ -105,9 +111,15 @@ function Runtime:start()
       self.host.ui:publish(self.ui:snapshot())
     end
     self.state = "running"
+    local runtime_version = require("cdin.runtime.core.version").runtime
     self.events:emit("runtime.started", {
-      version = require("cdin.runtime.core.version").runtime,
+      version = runtime_version,
       host_api = self.info.host_api,
+    })
+    self.log:info("runtime started", {
+      version = runtime_version,
+      host_api = format_version(self.info.host_api),
+      kernel_abi = format_version(self.info.kernel_abi),
     })
     return self
   end)
@@ -119,7 +131,7 @@ function Runtime:start()
     pcall(self.commands.close, self.commands)
     pcall(self.events.close, self.events)
     self.state = "failed"
-    pcall(self.host.log, self.host, "error", "runtime startup failed", {
+    self.log:error("runtime startup failed", {
       error = failure.message,
       code = failure.code,
     })
@@ -295,7 +307,7 @@ function Runtime:_publish_ui()
   local snapshot = self.ui:snapshot()
   local failures = self.events:emit("ui.model_changed", Table.copy(snapshot))
   for _, failure in ipairs(failures) do
-    self.host:log("error", failure.message, { code = failure.code, event = "ui.model_changed" })
+    self.log:error(failure.message, { code = failure.code, event = "ui.model_changed" })
   end
   return self.host.ui:publish(snapshot)
 end
@@ -374,10 +386,26 @@ function Runtime:shutdown()
   pcall(self.events.close, self.events)
   self.state = "stopped"
   if #failures > 0 then
-    pcall(self.host.log, self.host, "error", "runtime shutdown completed with failures", { count = #failures })
+    self.log:error("runtime shutdown completed with failures", { count = #failures })
+    -- Cap the detail lines so a large session cannot flood the shared logger.
+    for index = 1, math.min(#failures, 10) do
+      local failure = failures[index]
+      local detail = failure.error or failure
+      self.log:error("runtime shutdown failure", {
+        operation = failure.operation,
+        code = detail.code,
+      })
+    end
     return false, failures
   end
+  self.log:info("runtime stopped")
   return true
+end
+
+-- Counters for records sent, dropped, filtered or failed, so the Backend can
+-- notice a Host logger that has stopped accepting records.
+function Runtime:log_stats()
+  return self.log:stats()
 end
 
 return { new = Runtime.new, Runtime = Runtime }

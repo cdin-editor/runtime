@@ -46,8 +46,11 @@ work to do.
 
 - **Runtime → Backend:** a provisional Lua Host API. Runtime requests document
   operations and publishes semantic UI state through this interface.
-- **Backend → Kernel:** the public C ABI `1.0.0`. Only Backend code adapts this
+- **Backend → Kernel:** the public C ABI `1.1.0`. Only Backend code adapts this
   ABI; Runtime modules must not import it directly.
+- **Logging:** the Kernel owns the only logger. Runtime sends records through
+  `host:log`, and the Backend forwards them with `cdin_kernel_log`. Runtime
+  does not bind `log.c`, create a logger or print.
 - **Frontend ↔ Backend:** the Frontend Protocol. The wire format and full
   integration are not implemented in this repository yet.
 - **Extension → Runtime:** the provisional Lua Extension Contract. Extensions

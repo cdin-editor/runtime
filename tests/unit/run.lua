@@ -170,4 +170,6 @@ A.equal(type(module.init), "function")
 A.error_code(function() sandbox:load("unsafe", "return { init = function() return os.execute('x') end }", {}, {}) end, "BAD_EXTENSION")
 A.error_code(function() sandbox:load("global", "leak = true; return {}", {}, {}) end, "BAD_EXTENSION")
 
+require("unit.log_tests")
+
 A.report("unit tests")

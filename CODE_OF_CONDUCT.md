@@ -50,7 +50,7 @@ conduct outside those spaces has a direct and serious effect on community safety
 ## Reporting a concern
 
 If someone behaves in a way that violates this Code, contact the maintainers at
-**bitsgenix@gmail.com**. Include a description of what happened, where it
+**<bitsgenix@gmail.com>**. Include a description of what happened, where it
 happened and any information needed to review the concern. Please do not post a
 report containing sensitive personal information in a public issue.
 

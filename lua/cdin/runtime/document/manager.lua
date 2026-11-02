@@ -1,14 +1,19 @@
 local errors = require("cdin.runtime.core.error")
 local Client = require("cdin.runtime.document.client")
+local Log = require("cdin.runtime.core.log")
 
 -- Owns live Lua clients. The Backend/Kernel owns every underlying document.
 local Manager = {}
 Manager.__index = Manager
 
-function Manager.new(host, event_bus)
+-- `options.logger` is optional; without it the manager logs nothing. Records
+-- carry ids, versions and sizes only, never document bytes or file paths.
+function Manager.new(host, event_bus, options)
+  options = options or {}
   return setmetatable({
     host = host,
     event_bus = event_bus,
+    log = options.logger or Log.null(),
     documents = {},
     next_id = 0,
     closed = false,
@@ -85,8 +90,14 @@ function Manager:open(initial_bytes, options)
     path = options.path,
     subscription = subscription,
     events = self.event_bus,
+    log = self.log,
   })
   self.documents[document.id] = document
+  self.log:debug("document opened", {
+    document_id = document.id,
+    version = document.version,
+    length = document.length,
+  })
   self.event_bus:emit("document.opened", {
     document_id = document.id,
     path = document.path,
@@ -101,6 +112,7 @@ function Manager:forget_closed(id)
   end
 
   self.documents[id] = nil
+  self.log:debug("document closed by host", { document_id = id })
   self.event_bus:emit("document.closed", {
     document_id = id,
     external = true,
@@ -127,8 +139,11 @@ function Manager:close(id)
   self.documents[id] = nil
   self.event_bus:emit("document.closed", { document_id = id })
   if not ok then
-    error(errors.normalize(result, "INTERNAL", "close document " .. id), 0)
+    local failure = errors.normalize(result, "INTERNAL", "close document " .. id)
+    self.log:error("document close failed", { document_id = id, code = failure.code })
+    error(failure, 0)
   end
+  self.log:debug("document closed", { document_id = id })
   return result
 end
 
@@ -138,6 +153,7 @@ function Manager:close_all()
     local ok, failure = pcall(document.close, document)
     if not ok then
       failures[#failures + 1] = errors.normalize(failure, "INTERNAL", "close document " .. id)
+      self.log:error("document close failed", { document_id = id, code = failures[#failures].code })
     end
     self.documents[id] = nil
   end

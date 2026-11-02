@@ -1,6 +1,7 @@
 local errors = require("cdin.runtime.core.error")
 local Snapshot = require("cdin.runtime.document.snapshot")
 local Transaction = require("cdin.runtime.document.transaction")
+local Log = require("cdin.runtime.core.log")
 -- Thin client for a single Backend-owned document handle. The Kernel owns the
 -- bytes, versioned state and history; this object owns only metadata, a
 -- notification subscription and the snapshot/transaction leases it opens.
@@ -46,6 +47,7 @@ function Client.new(options)
     state = "open",
     subscription = options.subscription,
     events = options.events,
+    log = options.log or Log.null(),
     snapshots = {},
     active_transactions = {},
     next_transaction_id = 0,
@@ -440,9 +442,10 @@ function Client:_emit(name, payload)
   if self.events then
     local failures = self.events:emit(name, payload)
     for _, failure in ipairs(failures) do
-      self.host:log("error", failure.message, {
+      self.log:error(failure.message, {
         code = failure.code,
         event = name,
+        document_id = self.id,
       })
     end
   end

@@ -1,0 +1,39 @@
+version: 1
+
+project:
+  # PSX has no Lua project type; `generic` is the closest. Runtime is a library
+  # consumed by the Backend through the Host API.
+  type: generic
+  kind: library
+
+rules:
+  readme: error
+  license: error
+  # `src_folder` is intentionally not enabled: for `generic` PSX only recognises
+  # `src/`, while Runtime's sources live under `lua/` by design.
+  tests_folder: error
+  scripts_folder: info
+  makefile: error
+  ci_config: error
+  workflow_ci: error
+  workflow_release: info
+  docs_folder: info
+  contributing: info
+  security: info
+  pull_request_template: info
+  issue_templates: info
+  editorconfig: info
+  gitattributes: info
+
+ignore:
+  - .git/
+  - build/
+  - dist/
+  - release-root/
+  - coverage/
+  - .pipeline/
+  - .psx/
+
+fix:
+  interactive: false
+  backup: false

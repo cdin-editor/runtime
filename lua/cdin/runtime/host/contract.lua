@@ -1,5 +1,6 @@
 local version = require("cdin.runtime.core.version")
 local errors = require("cdin.runtime.core.error")
+local Log = require("cdin.runtime.core.log")
 
 -- Validate the provisional Backend-to-Runtime boundary once at startup.
 -- This is not the Kernel ABI: the Backend owns the native adapter and exposes
@@ -37,6 +38,46 @@ local function require_provisional_match(provided, required, label)
       provided = provided, required = required,
     })
   end
+end
+
+-- Runtime logs only through the Kernel's logger, reached via host:log(). A Host
+-- that reports a different provider would split CDIN's logs across two sinks,
+-- so it is rejected at startup rather than tolerated.
+local function validate_logging(info)
+  local logging = info.logging
+  if type(logging) ~= "table" then
+    errors.raise("HOST_API_MISMATCH", "host:info().logging must describe the Kernel logger", {
+      field = "logging",
+    })
+  end
+  if logging.provider ~= Log.provider then
+    errors.raise("HOST_API_MISMATCH", "logging must be provided by the Kernel logger", {
+      provided = tostring(logging.provider),
+      required = Log.provider,
+    })
+  end
+  if type(logging.levels) ~= "table" then
+    errors.raise("HOST_API_MISMATCH", "logging.levels must list the supported severities", {
+      field = "logging.levels",
+    })
+  end
+  local supported = {}
+  for _, name in ipairs(logging.levels) do
+    supported[name] = true
+  end
+  for _, name in ipairs(Log.levels) do
+    if not supported[name] then
+      errors.raise("HOST_API_MISMATCH", "host logger does not support a required severity", {
+        level = name,
+      })
+    end
+  end
+  if not Log.valid_max_message_bytes(logging.max_message_bytes) then
+    errors.raise("HOST_API_MISMATCH", "logging.max_message_bytes must be an integer from 1 to 1 MiB", {
+      provided = tostring(logging.max_message_bytes),
+    })
+  end
+  return logging
 end
 
 function M.validate(host)
@@ -126,6 +167,7 @@ function M.validate(host)
   if type(host.log) ~= "function" then
     errors.raise("HOST_API_MISMATCH", "host.log(level, message, fields) is required")
   end
+  validate_logging(info)
   return info
 end
 
