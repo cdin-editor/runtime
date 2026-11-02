@@ -3,6 +3,6 @@
 set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
-"$here/install-deps.sh"
-"$here/with-lua.sh" check
-"$here/check-boundaries.sh"
+bash "$here/install-deps.sh"
+bash "$here/with-lua.sh" check
+bash "$here/check-boundaries.sh"
