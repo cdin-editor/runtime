@@ -5,7 +5,7 @@ set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 
-if lua_bin="$("$here/lua-bin.sh" 2>/dev/null)"; then
+if lua_bin="$(bash "$here/lua-bin.sh" 2>/dev/null)"; then
   echo "Lua found: $lua_bin ($("$lua_bin" -v 2>&1))"
   exit 0
 fi
