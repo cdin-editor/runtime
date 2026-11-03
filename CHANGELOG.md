@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.0] — 2026-11-04 (release candidate; stable tag gated)
+## [1.0.0-rc.1] - 2026-11-04
 
 ### Added
 
@@ -14,12 +14,18 @@
 - Runtime and FakeHost now require/advertise Host API `1.0.0`.
 - Runtime no longer treats Host API as a provisional 0.x exact-match contract.
 
-### Verification boundary
+### Verification
 
-- Lua unit/simulated-Host and Backend build/test results are recorded in the
-  release gate report. This candidate is not a stable release until the live
-  Backend + Lua 5.4 + Kernel lifecycle/error mapping and extension/migration
-  gates pass.
+- Lua unit and simulated-Host verification results are recorded in the
+  release gate report.
+- Backend build and test results are recorded separately.
+
+### Release status
+
+- This is a release candidate, not a stable Runtime release.
+- Stable Runtime `1.0.0` remains gated on live Backend, Lua 5.4 and Kernel
+  lifecycle/error-mapping integration, together with the outstanding
+  extension and migration conformance requirements.
 
 ## [0.4.1] — 2026-11-04
 
