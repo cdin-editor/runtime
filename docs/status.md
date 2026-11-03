@@ -1,24 +1,38 @@
 # Current state
 
-CDIN Runtime is the Lua policy layer described by the [CDIN Specification](https://github.com/cdin-editor/spec). It owns commands, keymaps, logical views, configuration, extensions and the semantic UI model. It delegates document bytes and history to the Kernel through the Backend Host API.
+CDIN Runtime `1.0.0-rc.1` is the Lua 5.4 policy-layer release candidate. It contains
+commands and key-binding registries, configuration, workspace context,
+Host-backed document clients, logical views and selections, semantic UI model,
+theme/style/syntax registries, extension sandboxing, and Kernel-logger routing.
 
-## Available now
+## Verified in this source package
 
-- Public Lua entry point, strict-global checks and explicit startup/shutdown lifecycle.
-- Command and key-binding registries, including `document.new` for creating the first document/view through the Runtime policy layer.
-- Host API `0.3.0` validation against Kernel ABI `1.1.x` and Frontend Protocol `0.2.0`.
-- Bounded, version-pinned line-window reads through `DocumentClient:read_lines()` and `Runtime:read_view_lines()`; content remains Kernel-owned and is returned as transient byte strings.
-- `Runtime:handle_frontend_event()` for owner-thread key, text, paste, mouse, resize, focus, position and command dispatch.
-- Semantic UI snapshots with document version/length metadata, active theme styles and protocol-aligned view/panel bounds.
-- Theme, style, syntax, workspace and extension registries.
-- Logging through the Kernel's single logger via `host:log`; Runtime has no independent logger.
-- Unit and simulated-Host integration tests, plus static boundary checks.
+- Lua 5.4.7 unit tests: 137 assertions passed.
+- Lua 5.4.7 simulated-Host integration tests: 131 assertions passed after the
+  Protocol compatibility regression test was added.
+- Static architecture boundary checks: passed.
+- Frontend Protocol negotiation follows Spec `1.x` minor compatibility;
+  Runtime Host API `1.0.0` is stable and uses same-major / minimum-minor compatibility.
 
-## Still needed
+## Not verified / release blockers
 
-- Live Lua 5.4 + Backend + Kernel + Runtime integration results on the supported CI runner.
-- A concrete out-of-process Frontend transport (Unix Domain Socket / Windows Named Pipe) and end-to-end GUI implementation.
-- Compatibility tests for behavior and extensions carried over from the existing `cdin` application.
-- A reviewed stable Host API and Runtime-facing extension contract before 1.0.
+- Live Backend + Lua 5.4 + installed Kernel startup and document round-trip.
+- Native Lua C binding ownership, `__gc` fallback, owner-thread enforcement and
+  Kernel status-to-Lua error mapping under failure injection.
+- Live Runtime → Backend UI projection/ACK integration against the real Lua/Kernel host.
+- The companion Backend legacy patcher targets pre-integration Runtime source; it must not be run against this already-integrated 1.0.0 candidate.
+- Filesystem discovery/loading and complete legacy extension-contract parity (RT-013 / RT-020 / RT-021 scope).
+- Existing editor behaviour parity during migration, including approved command
+  and keymap defaults.
+- Cross-platform production integration evidence supplied by the companion
+  Backend and full CDIN build.
+- Live native lifecycle/error-mapping conformance and approved Runtime/extension API surface.
 
-The Host API remains provisional. Runtime source compatibility is deliberately exact for Host API `0.x`; a Backend with a different minor version must not bypass this startup guard.
+The Runtime Host API contract is frozen at `1.0.0`; release readiness still depends on native integration and the explicitly scoped extension/migration gates. The Frontend Protocol is the
+stable `1.0.0` shared wire contract. These are independent contracts and must
+not be conflated with the Runtime package version.
+
+See [Spec traceability](spec-traceability.md) for requirement-by-requirement
+implementation evidence and exact release blockers. The Specification remains
+authoritative; `PROPOSED`, `OPEN` and `DEFERRED` items are not made accepted by
+adding code here.

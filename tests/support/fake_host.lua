@@ -41,10 +41,10 @@ function M.new(options)
       logging = nil
     end
     return {
-      host_api = options.host_api or { major = 0, minor = 3, patch = 0 },
+      host_api = options.host_api or { major = 1, minor = 0, patch = 0 },
       kernel_abi = options.kernel_abi or { major = 1, minor = 1, patch = 0 },
       extension_contract = options.extension_contract or { major = 1, minor = 0 },
-      frontend_protocol = options.frontend_protocol or { major = 0, minor = 2, patch = 0 },
+      frontend_protocol = options.frontend_protocol or { major = 1, minor = 0, patch = 0 },
       features = options.features or { documents = true, document_lines = true, frontend_events = options.frontend_events ~= false, notifications = true, snapshots = true, transactions = true, batch_edits = true, literal_search = true, ui_model = true, logging = true },
       kernel_features = { transactions = true, snapshots = true, notifications = true, batch = true, search_literal = true, search_bytes = true, search_regex = false },
       logging = logging,

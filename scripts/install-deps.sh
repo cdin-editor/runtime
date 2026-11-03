@@ -27,5 +27,7 @@ else
   exit 2
 fi
 
-lua_bin="$("$here/lua-bin.sh")"
+# Spec: RT-001 / ADR-0019 require PUC Lua 5.4 for the supported bridge.
+# Use bash so this script also works from source archives without +x modes.
+lua_bin="$(bash "$here/lua-bin.sh")"
 echo "Lua installed: $lua_bin ($("$lua_bin" -v 2>&1))"

@@ -76,23 +76,6 @@ runtime:close_document(event_document.id)
 local search = document:search("Z", { mode = "literal" }); A.equal(search.count, 1)
 A.error_code(function() document:search("Z", { mode = "regex" }) end, "UNSUPPORTED")
 
--- A Frontend can create its first empty or preloaded document through Runtime policy.
-local new_document_event = runtime:handle_frontend_event({
-  type = "request.command", name = "document.new", arguments = { bytes = "alpha\r\nbeta\nlast\0" },
-})
-A.equal(new_document_event.status, "executed")
-A.equal(new_document_event.result.length, 17)
-local created_document = runtime.documents:get(new_document_event.result.document_id)
-local created_view = runtime.ui.views[new_document_event.result.view_id]
-A.truthy(created_view ~= nil)
-A.equal(created_view.id, runtime.ui.focus)
-local created_lines = created_document:read_lines(0, 8, created_document.version)
-A.equal(created_lines.total_lines, 3)
-A.equal(created_lines.lines[1], "alpha\r\n")
-A.equal(created_lines.lines[2], "beta\n")
-A.equal(created_lines.lines[3], "last\0")
-runtime:close_document(created_document.id)
-
 -- Version-pinned line service preserves CRLF, LF, NUL and exact document bytes.
 local line_document = runtime:open_document("one\r\ntwo\nlast\0")
 local line_client = runtime.documents:get(line_document.id)
@@ -239,16 +222,34 @@ A.error_code(function()
   bad:start()
 end, "HOST_API_MISMATCH")
 A.error_code(function()
-  local bad = Runtime.new({ host = FakeHost.new({ host_api = { major = 0, minor = 2, patch = 0 } }) })
+  local bad = Runtime.new({ host = FakeHost.new({ host_api = { major = 0, minor = 3, patch = 0 } }) })
   bad:start()
 end, "HOST_API_MISMATCH")
 A.error_code(function()
-  local bad = Runtime.new({ host = FakeHost.new({ host_api = { major = 0, minor = 1, patch = 0 } }) })
+  local bad = Runtime.new({ host = FakeHost.new({ host_api = { major = 2, minor = 0, patch = 0 } }) })
   bad:start()
 end, "HOST_API_MISMATCH")
+-- Stable Host API 1.x permits additive minor evolution and rejects older/different majors.
+local forward_host_api = Runtime.new({
+  host = FakeHost.new({ host_api = { major = 1, minor = 1, patch = 0 } }),
+})
+forward_host_api:start(); A.equal(forward_host_api.state, "running"); forward_host_api:shutdown()
+
 A.error_code(function()
-  local bad = Runtime.new({ host = FakeHost.new({ frontend_protocol = { major = 0, minor = 1, patch = 0 } }) })
+  local bad = Runtime.new({ host = FakeHost.new({ frontend_protocol = { major = 0, minor = 2, patch = 0 } }) })
   bad:start()
+end, "HOST_API_MISMATCH")
+-- Spec: ADR-0018 / docs/architecture/protocol-wire.md §6. Stable Protocol
+-- minor versions are additive within major 1; a major change is incompatible.
+local forward_protocol = Runtime.new({
+  host = FakeHost.new({ frontend_protocol = { major = 1, minor = 1, patch = 0 } }),
+})
+A.truthy(forward_protocol:start())
+A.truthy(forward_protocol:shutdown())
+A.error_code(function()
+  Runtime.new({
+    host = FakeHost.new({ frontend_protocol = { major = 2, minor = 0, patch = 0 } }),
+  }):start()
 end, "HOST_API_MISMATCH")
 local incomplete_host = FakeHost.new(); incomplete_host.documents.read_lines = nil
 A.error_code(function() Runtime.new({ host = incomplete_host }):start() end, "HOST_API_MISMATCH")

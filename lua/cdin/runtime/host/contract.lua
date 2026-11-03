@@ -2,7 +2,7 @@ local version = require("cdin.runtime.core.version")
 local errors = require("cdin.runtime.core.error")
 local Log = require("cdin.runtime.core.log")
 
--- Validate the provisional Backend-to-Runtime boundary once at startup.
+-- Validate the stable Backend-to-Runtime boundary once at startup.
 -- This is not the Kernel ABI: the Backend owns the native adapter and exposes
 -- only these Lua services to the Runtime.
 local M = {}
@@ -30,11 +30,11 @@ local function require_compatible(provided, required, label)
   end
 end
 
-local function require_provisional_match(provided, required, label)
-  -- The Host API and Frontend Protocol are still 0.x contracts. Do not guess
-  -- that a different minor version is compatible before the Spec says so.
-  if provided.major ~= required.major or provided.minor ~= required.minor then
-    errors.raise("HOST_API_MISMATCH", label .. " provisional major/minor must match exactly", {
+local function require_compatible(provided, required, label)
+  -- Stable Host API 1.x permits additive minor evolution. A Host may provide
+  -- a newer minor, but never a different major or an older minor.
+  if provided.major ~= required.major or provided.minor < required.minor then
+    errors.raise("HOST_API_MISMATCH", label .. " version is incompatible", {
       provided = provided, required = required,
     })
   end
@@ -87,11 +87,11 @@ function M.validate(host)
   local info = host:info()
   if type(info) ~= "table" then errors.raise("HOST_API_MISMATCH", "host:info() must return a table") end
   local provided_host_api = parse_version(info.host_api, "host_api")
-  -- Host API 0.x is deliberately provisional: no minor-version compatibility
-  -- promise is made until a reviewed 1.0 contract is accepted.
-  require_provisional_match(provided_host_api, version.host_api, "Runtime Host API")
+  require_compatible(provided_host_api, version.host_api, "Runtime Host API")
   require_compatible(parse_version(info.kernel_abi, "kernel_abi"), version.kernel_abi, "Kernel ABI")
-  require_provisional_match(
+  -- Spec: ADR-0018 and protocol-wire.md §6. Protocol 1.x permits additive
+  -- minor evolution; require the same major and at least our required minor.
+  require_compatible(
     parse_version(info.frontend_protocol, "frontend_protocol"),
     version.frontend_protocol,
     "Frontend Protocol"

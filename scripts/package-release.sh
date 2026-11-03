@@ -12,7 +12,7 @@ cd "$here/.."
 
 tag="${PIPELINE_RELEASE_TAG:-${GITHUB_REF_NAME:-}}"
 if [[ -z "$tag" ]]; then
-  echo "set PIPELINE_RELEASE_TAG (for example v0.3.0) to build release archives" >&2
+  echo "set PIPELINE_RELEASE_TAG (for example v1.0.0) to build release archives" >&2
   exit 2
 fi
 version="${tag#v}"
@@ -22,7 +22,9 @@ if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z]+([.-][0-9A-Za-z]+)*)?
   exit 1
 fi
 
-lua_bin="$("$here/lua-bin.sh")"
+# Spec: RT-001 / ADR-0019 require the supported PUC Lua 5.4 runtime.
+# Invoke through bash because source archives may not preserve executable bits.
+lua_bin="$(bash "$here/lua-bin.sh")"
 runtime_version="$("$lua_bin" -e 'package.path = "lua/?.lua;lua/?/init.lua;" .. package.path; io.write(require("cdin.runtime.core.version").runtime)')"
 if [[ "$runtime_version" != "$version" ]]; then
   echo "git-derived Runtime version (${runtime_version}) does not match tag (${version})" >&2

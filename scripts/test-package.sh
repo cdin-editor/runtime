@@ -22,7 +22,9 @@ expected="${expected#cdin-runtime-}"
 embedded="$(sed -n 's/^return "\(.*\)"$/\1/p' "$package_dir/lua/cdin/runtime/core/release_metadata.lua")"
 [[ "$embedded" == "$expected" ]] || { echo "embedded version ${embedded} != archive version ${expected}" >&2; exit 1; }
 
-lua_bin="$("$here/lua-bin.sh")"
+# Spec: RT-001 / ADR-0019 require the supported PUC Lua 5.4 runtime.
+# Invoke through bash because source archives may not preserve executable bits.
+lua_bin="$(bash "$here/lua-bin.sh")"
 reported="$(cd "$package_dir" && "$lua_bin" -e 'package.path = "lua/?.lua;lua/?/init.lua;" .. package.path; io.write(require("cdin.runtime.core.version").runtime)')"
 [[ "$reported" == "$expected" ]] || { echo "package reports version ${reported}, expected ${expected}" >&2; exit 1; }
 

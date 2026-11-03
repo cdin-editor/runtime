@@ -82,7 +82,6 @@ internal module `cdin.runtime.application` directly.
 ## What the tests do not prove
 
 The fake Host is not the real Kernel adapter. Passing local tests does not prove
-native handle ownership, Kernel ABI conformance, thread handoff or real file I/O.
-The companion Backend repository provides a live Lua 5.4 + Kernel + Runtime
-workflow, including a Frontend Protocol create/edit/versioned-line-read smoke
-test. Run that workflow before treating a combined CDIN build as integrated.
+native handle ownership, Kernel ABI conformance, thread handoff, real file I/O,
+or Frontend Protocol integration. The Runtime must not be treated as integrated
+into CDIN until those checks are run against the production components.

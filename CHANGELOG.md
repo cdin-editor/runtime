@@ -1,23 +1,84 @@
 # Changelog
 
+## [1.0.0] — 2026-11-04 (release candidate; stable tag gated)
+
+### Added
+
+- Frozen Runtime Host API `1.0.0` contract with stable same-major /
+  additive-minor compatibility policy.
+- Host API compatibility tests: 1.1 is accepted by a 1.0 consumer; 0.x and
+  2.x are rejected.
+
+### Changed
+
+- Runtime and FakeHost now require/advertise Host API `1.0.0`.
+- Runtime no longer treats Host API as a provisional 0.x exact-match contract.
+
+### Verification boundary
+
+- Lua unit/simulated-Host and Backend build/test results are recorded in the
+  release gate report. This candidate is not a stable release until the live
+  Backend + Lua 5.4 + Kernel lifecycle/error mapping and extension/migration
+  gates pass.
+
+## [0.4.1] — 2026-11-04
+
+### Fixed
+
+- Release/test helper scripts invoke the Lua detector through `bash`, so source
+  archives remain usable when executable mode bits are not preserved.
+- Frontend Protocol negotiation now follows the accepted Protocol 1.x
+  compatibility rule: the same major version and a provided minor version at
+  least as new as the Runtime requirement. Protocol 0.x and 2.x remain rejected.
+  This corrects the stale exact-match guard left behind during the 1.0.0 wire
+  alignment; the provisional Runtime Host API 0.3.0 still requires an exact
+  major/minor match.
+
+### Verification
+
+- Lua 5.4 unit tests: 137 assertions passed.
+- Lua 5.4 simulated-Host integration tests: 131 assertions passed.
+- `scripts/ci-check.sh`: passed.
+- Source TAR and ZIP package tests: passed; archive checksums verified.
+
+### Specification references
+
+- [ADR-0018 — Frontend Protocol wire format](https://github.com/cdin-editor/spec/blob/main/docs/adr/ADR-0018-frontend-protocol-wire.md)
+- [Protocol version evolution](https://github.com/cdin-editor/spec/blob/main/docs/architecture/protocol-wire.md#version-evolution)
+
 This file records user-visible changes to CDIN Runtime. Runtime versions are
 read from Git tags: a release tag such as `v0.2.0` corresponds to the `0.2.0`
 entry below. Release archives receive generated version metadata and do not need
 a separate `VERSION` file.
 
-## [Unreleased]
+## [0.4.0] — 2026-11-04
 
 ### Added
 
-- Runtime Host API `0.3.0` support for bounded, version-pinned logical line reads through `host.documents:read_lines()`; returned line strings preserve NUL, invalid UTF-8 and original LF/CRLF/CR bytes without retaining document text in Runtime.
-- `Runtime:read_view_lines()` for the Backend's `view.request_lines` path and `Runtime:handle_frontend_event()` for owner-thread dispatch of key, text, paste, mouse, resize, focus, position and command events.
-- Frontend UI snapshot metadata (`document_version`, `document_length`, active theme styles) and bounded view/panel counts that match Backend's atomic protocol batch.
-- The `document.new` Runtime command, which creates a Kernel-owned document and its first focused view so an attached Frontend can start an editing session.
-- FakeHost and integration coverage for line windows, external-version resynchronization, byte-preserving paste, Frontend event dispatch and new-document startup.
+- Backend Host API `0.3.0` integration: bounded, version-pinned document line
+  windows through `documents.read_lines` and owner-thread Frontend event handling.
+- UI snapshots now carry bounded view/panel state, document version/length,
+  active theme and style data required by Backend Protocol projection.
+- FakeHost and integration coverage for line endings, raw bytes, stale versions,
+  paste/key/command events, resize/focus/mouse input and scroll-anchor clamping.
 
 ### Changed
 
-- **Breaking (provisional contract):** Runtime now requires Host API `0.3.0` and Frontend Protocol `0.2.0`, including the required `document_lines` feature and a boolean `frontend_events` capability descriptor. Older 0.2.x / Protocol 0.1.x Hosts are rejected at startup.
+- Frontend Protocol descriptor is now `1.0.0`, matching the stable shared wire
+  contract implemented by Backend and Frontend. Runtime rejects provisional
+  Protocol `0.2.x`; no silent downgrade or fallback is performed.
+- Runtime Host API is `0.3.0`. It remains a provisional internal Backend boundary;
+  this does not declare the entire Runtime product production-ready.
+- Startup compatibility diagnostics distinguish the provisional Host API from
+  the stable Frontend Protocol contract.
+
+### Verification
+
+- Lua 5.4 unit tests: 137 assertions passed.
+- Lua 5.4 simulated-Host integration tests: 128 assertions passed.
+- Static boundary checks passed.
+- Live Backend + installed Kernel integration remains pending until the pinned
+  `cdin-kernel` package and Lua development dependencies are available.
 
 ## [0.3.0] — 2026-11-02
 

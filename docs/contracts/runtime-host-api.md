@@ -1,6 +1,6 @@
-# Runtime Host API 0.3.0
+# Runtime Host API 1.0.0
 
-**Status:** provisional development contract; not a stable public API.
+**Status:** stable public Backend-to-Runtime contract, version 1.0.0.
 
 This API is the only route from `cdin-runtime` to the Backend. The Backend owns
 the native Kernel adapter, OS services and frontend transport. Runtime must not
@@ -8,10 +8,9 @@ load the Kernel shared library, call C ABI symbols, inspect Kernel structs or
 keep a shadow copy of document bytes/history.
 
 The contract is aligned with CDIN Kernel C ABI `1.1.0` (Kernel package `1.2.1`)
-and CDIN Spec `1.1.0`. ABI `1.1.0` is the first release with the Kernel logging
-API that section 5 depends on. The production C adapter is implemented in the
-companion Backend repository; the live cross-repository workflow verifies it
-against this Runtime source.
+and CDIN Spec `1.3.0`. ABI `1.1.0` is the first release with the Kernel logging
+API that section 5 depends on. The companion Backend source implements the C
+adapter; live Lua 5.4 + Kernel integration remains a separate verification gate.
 
 ## 1. Host descriptor and version negotiation
 
@@ -19,10 +18,10 @@ against this Runtime source.
 
 ```lua
 {
-  host_api = { major = 0, minor = 3, patch = 0 },
+  host_api = { major = 1, minor = 0, patch = 0 },
   kernel_abi = { major = 1, minor = 1, patch = 0 },
   extension_contract = { major = 1, minor = 0 },
-  frontend_protocol = { major = 0, minor = 2, patch = 0 },
+  frontend_protocol = { major = 1, minor = 0, patch = 0 },
   features = {
     documents = true, notifications = true, snapshots = true,
     transactions = true, batch_edits = true, literal_search = true,
@@ -41,11 +40,25 @@ against this Runtime source.
 }
 ```
 
-Because Host API `0.x` is provisional, the runtime requires an exact host
-major/minor match (`0.3`). Kernel ABI requires major `1`, minor `>= 1`; the
-extension contract requires major `1`. The runtime accepts only a frontend
-protocol version compatible with its configured major/minor floor and relies
-on Backend capability negotiation for optional transports.
+Host API `1.x` follows stable semantic-version compatibility: the provided
+major must equal `1` and the provided minor must be at least the required minor
+(`1.0`). Additive minor versions are compatible; a different major or an older
+minor is rejected. Patch versions do not change the contract shape. Kernel ABI
+requires major `1`, minor `>= 1`; the extension contract requires major `1`.
+Frontend Protocol follows the accepted wire compatibility rule: the major must be `1` and the provided minor must be
+at least the required minor (`1.0`). Additive `1.x` minor versions are
+compatible; a different major is rejected. Protocol `0.2.x` is intentionally
+rejected because its wire schema is incompatible. Backend owns optional
+capability negotiation.
+
+Host API 1.0.0 freezes the method names, argument/result shapes, byte-offset
+conventions, ownership/lifetime rules, owner-thread rule, required capability
+set, stable error-code vocabulary, and the Kernel ABI 1.1.0 minimum described
+in this document. A compatible 1.x minor may add optional methods, fields, or
+capabilities; it must not change existing meanings or make an optional item
+required. A breaking change requires Host API 2.0.0. Unknown additive descriptor
+fields must be ignored; unknown required capabilities must fail closed. See [ADR-0018](https://github.com/cdin-editor/spec/blob/main/docs/adr/ADR-0018-frontend-protocol-wire.md)
+and [Protocol version evolution](https://github.com/cdin-editor/spec/blob/main/docs/architecture/protocol-wire.md#version-evolution).
 
 The Backend must query `cdin_abi_version()` and `cdin_features()` before
 creating the Lua Runtime and report the negotiated result accurately. For
@@ -185,7 +198,7 @@ not internal Runtime crashes.
 `host.ui:publish(model_snapshot) -> true`
 
 The model is serializable semantic state. Backend validates it and projects it to
-Frontend Protocol 0.2.0 messages on the Lua owner thread. Every publication is a
+Frontend Protocol 1.0.0 messages on the Lua owner thread. Every publication is a
 complete snapshot ending in one `ui.flush`; Frontends replace projected model state
 atomically at that boundary. Runtime does not know which frontends are attached and
 does not draw. `view.request_lines` is answered from the Kernel through `read_lines`.
@@ -270,10 +283,20 @@ The Backend adapter must use only the public `include/cdin/kernel.h` header and
 must run the Kernel's conformance vectors through the adapter before declaring
 this integration complete.
 
-## 8. Stability gate
+## 8. Stable compatibility and evolution policy
 
-Host API `0.3.0` is not a stable external contract. A reviewed stability decision
-requires a complete Backend/C adapter, ABI-to-Lua status mapping tests, live
-create/edit/read/notify/undo/redo/close tests against the real Kernel, lifecycle
-failure injection, Lua 5.4 tests, headless Frontend Protocol integration, and an
-accepted Spec decision for versioning/compatibility.
+- Runtime requires Host API `1.0.0` or newer `1.x` minor; it rejects Host API
+  `0.x`, `2.x`, and any `1.x` version with a minor below `0` (the latter is
+  structurally impossible but remains a validation failure).
+- Patch releases correct documentation or implementation defects without
+  changing observable contract behavior.
+- Minor releases may add optional methods, descriptor fields, error detail
+  fields, or capability flags. Additions are capability-gated and must preserve
+  behavior for a 1.0 consumer.
+- Major releases may remove or change methods, argument/result shapes, error
+  identity, ownership, threading, or required capabilities.
+- Backend is the provider and source of truth for the descriptor. Runtime is a
+  consumer and validates the negotiated descriptor at startup. Runtime does not
+  negotiate Kernel ABI or Frontend Protocol independently.
+- Kernel ABI `1.1.0` and Frontend Protocol `1.0.0` remain separate version axes.
+  Their compatibility rules are not inherited from the Host API version.

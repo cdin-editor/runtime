@@ -157,13 +157,13 @@ end
 
 return {
   runtime = resolve_runtime_version(),
-  -- Host API 0.3 adds the document line-window service and Frontend event boundary.
-  host_api = { major = 0, minor = 3, patch = 0 },
+  -- Stable Host API 1.0.0 freezes the Backend-to-Runtime Lua boundary.
+  host_api = { major = 1, minor = 0, patch = 0 },
   -- Kernel ABI 1.1.0 is the first release with the logging API
   -- (`cdin_kernel_log`, `cdin_log_options`) that the Host API relies on.
   kernel_abi = { major = 1, minor = 1, patch = 0 },
-  frontend_protocol = { major = 0, minor = 2, patch = 0 },
+  frontend_protocol = { major = 1, minor = 0, patch = 0 },
   extension_contract = { major = 1, minor = 0 },
-  -- The Frontend Protocol is still provisional. Backend negotiates transport;
-  -- Runtime validates the negotiated version and never owns the wire protocol.
+  -- Frontend Protocol 1.0.0 is the stable wire contract. Backend owns transport
+  -- negotiation; Runtime validates the reported version and owns no wire codec.
 }

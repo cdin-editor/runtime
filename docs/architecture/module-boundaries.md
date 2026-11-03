@@ -24,10 +24,9 @@ flowchart TD
   VIEW --> FRONTEND[Frontend]
 ```
 
-The diagram shows ownership. Runtime implements its Lua-side Host API and
-Frontend event/line-read methods. The companion Backend provides the production
-Lua 5.4 C adapter, Kernel adapter and in-process Protocol server. A concrete
-out-of-process socket/pipe transport and a production GUI remain separate work.
+The diagram shows ownership, not a claim that every connection is already
+implemented. The production Backend adapter and Frontend connection are still
+work to do.
 
 ## Where should code go?
 
@@ -45,17 +44,15 @@ out-of-process socket/pipe transport and a production GUI remain separate work.
 
 ## The important boundaries
 
-- **Runtime → Backend:** provisional Lua Host API `0.3.0`. Runtime requests
-  document operations, version-pinned line windows and publishes semantic UI
-  state through this interface. The production adapter is in `cdin-editor/backend`.
+- **Runtime → Backend:** a provisional Lua Host API. Runtime requests document
+  operations and publishes semantic UI state through this interface.
 - **Backend → Kernel:** the public C ABI `1.1.0`. Only Backend code adapts this
   ABI; Runtime modules must not import it directly.
 - **Logging:** the Kernel owns the only logger. Runtime sends records through
   `host:log`, and the Backend forwards them with `cdin_kernel_log`. Runtime
   does not bind `log.c`, create a logger or print.
-- **Frontend ↔ Backend:** Frontend Protocol `0.2.0`. Runtime handles normalized
-  events on the Lua owner thread and exposes `read_view_lines()` for pull-based
-  line requests; framing, codec, queues and dispatch live in `cdin-editor/backend`.
+- **Frontend ↔ Backend:** the Frontend Protocol. The wire format and full
+  integration are not implemented in this repository yet.
 - **Extension → Runtime:** the provisional Lua Extension Contract. Extensions
   receive an explicit capability facade rather than private internals.
 
