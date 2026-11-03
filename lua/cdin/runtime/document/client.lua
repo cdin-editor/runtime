@@ -94,6 +94,59 @@ function Client:read(start_offset, length)
   }
 end
 
+-- Refresh only version/length metadata after an external Kernel mutation.
+-- The zero-byte read is the Host API's explicit latest-version resync operation.
+function Client:refresh_metadata()
+  self:_assert_open()
+  local result = check_result(self.host.documents:read(self.handle, {
+    start = 0, length = 0, expected_version = nil,
+  }), "metadata refresh")
+  if type(result.version) ~= "number" or result.version < self.version
+      or type(result.total_length) ~= "number" or result.total_length < 0 then
+    errors.raise("INTERNAL", "host metadata refresh returned an invalid version/length")
+  end
+  local changed = result.version ~= self.version or result.total_length ~= self.length
+  self.version = result.version
+  self.length = result.total_length
+  return changed, { version = self.version, length = self.length }
+end
+
+-- Read a bounded line window without retaining document bytes on the client.
+-- Each returned line is an exact byte string, including its original EOL bytes.
+function Client:read_lines(first_line, line_count, expected_version)
+  self:_assert_open()
+  if type(first_line) ~= "number" or first_line < 0 or first_line % 1 ~= 0 then
+    errors.raise("INVALID_ARGUMENT", "first_line must be a non-negative integer")
+  end
+  if type(line_count) ~= "number" or line_count < 1 or line_count > 4096 or line_count % 1 ~= 0 then
+    errors.raise("INVALID_ARGUMENT", "line_count must be an integer from 1 to 4096")
+  end
+  local pinned_version = expected_version == nil and self.version or expected_version
+  if type(pinned_version) ~= "number" or pinned_version < 0 or pinned_version % 1 ~= 0 then
+    errors.raise("INVALID_ARGUMENT", "expected_version must be a non-negative integer")
+  end
+  local result = check_result(self.host.documents:read_lines(self.handle, {
+    first_line = first_line,
+    line_count = line_count,
+    expected_version = pinned_version,
+  }), "read_lines")
+  if type(result.version) ~= "number" or result.version ~= pinned_version
+      or result.first_line ~= first_line
+      or type(result.total_lines) ~= "number" or result.total_lines < 1
+      or first_line >= result.total_lines
+      or type(result.lines) ~= "table" or #result.lines == 0
+      or #result.lines > math.min(line_count, result.total_lines - first_line) then
+    errors.raise("INTERNAL", "host document read_lines result violates the documented shape")
+  end
+  for index, bytes in ipairs(result.lines) do
+    if type(bytes) ~= "string" then
+      errors.raise("INTERNAL", "host document read_lines returned a non-byte-string line", { index = index })
+    end
+  end
+  self.version = result.version
+  return result
+end
+
 -- Every write uses the last observed version unless the caller supplies one.
 -- The Kernel decides whether that version is still current and commits atomically.
 function Client:replace(start_offset, end_offset, bytes, options)

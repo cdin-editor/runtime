@@ -47,10 +47,13 @@ how to draw the UI, including pixel positions, font shaping and line wrapping.
 
 ## Current implementation
 
-The Lua modules and simulated-Host tests are present. The production Backend
-adapter, live Kernel integration and Frontend Protocol connection are not yet
-included, so the architecture above describes the intended connection between
-components, not a fully integrated editor today.
+Runtime implements the Lua side of Host API `0.3.0` and Frontend Protocol `0.2.0`:
+version-pinned line windows, semantic UI metadata, bounded model snapshots, and
+owner-thread Frontend event dispatch. The companion Backend repository provides
+the production PUC Lua 5.4 C bridge and Kernel adapter. FakeHost tests verify the
+Runtime behavior; the Backend's live integration workflow is the release gate
+for the real Lua 5.4 + Kernel + Backend path. Concrete out-of-process transports
+and the GUI are separate deliverables.
 
 See the [CDIN Specification](https://github.com/cdin-editor/spec) for the
 cross-project design.

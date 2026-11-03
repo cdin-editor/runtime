@@ -82,13 +82,14 @@ transport. Those jobs belong to the Frontend or Backend.
 
 ## 5. Can I run it as an editor today?
 
-Not by itself. The Runtime needs a Backend that implements its Host API. The
-production adapter connecting this Runtime to the real Kernel and Frontend
-Protocol is not included yet.
+Not by itself. Runtime is a policy library and needs the Backend composition
+root. The companion Backend repository provides the production PUC Lua 5.4
+Host adapter, Kernel connection and Frontend Protocol server. Runtime supplies
+the Lua event dispatcher and version-pinned line-read methods used by that path.
 
-For that reason, the current practical entry point is the test environment. It
-uses a simulated Host to exercise Runtime behavior without pretending that the
-real Kernel or GUI is already connected.
+The example below still uses a simulated Host so Runtime behavior can be tested
+without starting the native Backend. A real GUI and out-of-process transport are
+separate components; this repository does not claim to provide either.
 
 ## 6. Run the tests
 
@@ -163,14 +164,17 @@ The current development API exposes these entry points:
 | `runtime:open_document(bytes, options)` | Ask the Host to create a document and return a lightweight client. |
 | `runtime:create_view(document_id, options)` | Create a view with its own selection and focus state. |
 | `runtime:handle_key(event)` | Turn a raw key event into a command. |
+| `runtime:handle_frontend_event(event)` | Dispatch a normalized Protocol event on the Lua owner thread. |
+| `runtime:read_view_lines(view_id, first_line, line_count, version)` | Return a bounded, version-pinned line window for a view. |
 | `runtime:pump_notifications()` | Process Kernel change notifications on the Lua owner thread. |
 | `runtime:save_document(id, path, options)` | Save through the Host's optional atomic-write service. |
 | `runtime:close_document(id)` | Close a document and detach its views. |
 | `runtime:shutdown()` | Stop the Runtime and release its owned resources. |
 
-The Host API is still provisional, and the production adapter is not included.
-These calls describe the current implementation, not a promise that its API is
-already stable for third-party applications.
+The Host API is still provisional. The production adapter lives in the
+companion Backend repository, and the live integration workflow verifies the
+combined build. These calls describe the current implementation, not a promise
+that the API is already stable for third-party applications.
 
 ## 9. Add a command while developing
 

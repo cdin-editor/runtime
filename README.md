@@ -34,7 +34,7 @@ The separation is intentional: Runtime does not draw the window, perform pixel-l
 
 ## Current status
 
-This repository contains the reorganized Runtime implementation and tests that use a simulated Host. It is **not yet a complete, runnable CDIN editor**. The production Backend adapter, live Kernel connection and Frontend Protocol integration are not included, and the Host API and UI model are still under development.
+This repository contains the Runtime policy layer and the Lua side of its production Backend boundary. It implements Host API `0.3.0` and Frontend Protocol `0.2.0`, including version-pinned line reads, semantic UI metadata, first-document creation and owner-thread Frontend event dispatch. The companion Backend supplies the PUC Lua 5.4 C adapter, Kernel connection and Protocol server; this repository remains a library, not a complete runnable CDIN editor.
 
 The [CDIN specification](https://github.com/cdin-editor/spec) is the source of truth for cross-project contracts. This README describes the current state of this repository; it does not override the specification.
 
@@ -60,7 +60,7 @@ make unit
 make integration
 ```
 
-The integration tests use a simulated Host. Passing them verifies Runtime behavior against that test interface; it does not prove that a real Kernel, Backend or Frontend is connected. The default interpreter is `lua5.4`. If your installation exposes Lua 5.4 as `lua`, run `make check LUA=lua`.
+The Runtime unit and integration suites use a simulated Host. The companion Backend repository adds a live Lua 5.4 + Kernel + Runtime integration workflow, including Protocol-driven document creation, text insertion and version-pinned line reads; passing the simulated tests alone does not replace that cross-repository check. The default interpreter is `lua5.4`. If your installation exposes Lua 5.4 as `lua`, run `make check LUA=lua`.
 
 For a first-time walkthrough, see the [User Guide](docs/user-guide.md).
 

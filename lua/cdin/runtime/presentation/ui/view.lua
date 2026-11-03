@@ -39,6 +39,7 @@ function View:clamp_selection(length)
   local anchor = math.min(self.selection.anchor, length)
   local caret = math.min(self.selection.caret, length)
   self:set_selection(anchor, caret)
+  self.scroll_anchor = math.min(self.scroll_anchor, length)
 end
 
 local function transform_offset(offset, edit)

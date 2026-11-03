@@ -5,6 +5,20 @@ read from Git tags: a release tag such as `v0.2.0` corresponds to the `0.2.0`
 entry below. Release archives receive generated version metadata and do not need
 a separate `VERSION` file.
 
+## [Unreleased]
+
+### Added
+
+- Runtime Host API `0.3.0` support for bounded, version-pinned logical line reads through `host.documents:read_lines()`; returned line strings preserve NUL, invalid UTF-8 and original LF/CRLF/CR bytes without retaining document text in Runtime.
+- `Runtime:read_view_lines()` for the Backend's `view.request_lines` path and `Runtime:handle_frontend_event()` for owner-thread dispatch of key, text, paste, mouse, resize, focus, position and command events.
+- Frontend UI snapshot metadata (`document_version`, `document_length`, active theme styles) and bounded view/panel counts that match Backend's atomic protocol batch.
+- The `document.new` Runtime command, which creates a Kernel-owned document and its first focused view so an attached Frontend can start an editing session.
+- FakeHost and integration coverage for line windows, external-version resynchronization, byte-preserving paste, Frontend event dispatch and new-document startup.
+
+### Changed
+
+- **Breaking (provisional contract):** Runtime now requires Host API `0.3.0` and Frontend Protocol `0.2.0`, including the required `document_lines` feature and a boolean `frontend_events` capability descriptor. Older 0.2.x / Protocol 0.1.x Hosts are rejected at startup.
+
 ## [0.3.0] — 2026-11-02
 
 ### Added

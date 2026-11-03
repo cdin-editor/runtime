@@ -1,36 +1,24 @@
 # Current state
 
-CDIN Runtime is an early Lua implementation of the policy layer described in the
-[CDIN Specification](https://github.com/cdin-editor/spec). It is useful for
-working on Runtime modules and testing their behavior against a simulated Host.
-It is not yet ready to replace the existing Lua core in a runnable CDIN build.
+CDIN Runtime is the Lua policy layer described by the [CDIN Specification](https://github.com/cdin-editor/spec). It owns commands, keymaps, logical views, configuration, extensions and the semantic UI model. It delegates document bytes and history to the Kernel through the Backend Host API.
 
 ## Available now
 
-- A public Lua entry point with strict-global checks.
-- Command and key-binding registries.
-- Configuration and project-context modules.
-- A document client that talks only through the Runtime Host API.
-- Logical views, selections and a data-only UI model.
-- Theme, style and syntax registries.
-- An extension manager with owner-scoped cleanup and a restricted Lua environment.
-- Logging through the Kernel's single logger, via Host API `host:log` (Host API
-  0.2.0, Kernel ABI 1.1.0). Runtime has no logger of its own.
+- Public Lua entry point, strict-global checks and explicit startup/shutdown lifecycle.
+- Command and key-binding registries, including `document.new` for creating the first document/view through the Runtime policy layer.
+- Host API `0.3.0` validation against Kernel ABI `1.1.x` and Frontend Protocol `0.2.0`.
+- Bounded, version-pinned line-window reads through `DocumentClient:read_lines()` and `Runtime:read_view_lines()`; content remains Kernel-owned and is returned as transient byte strings.
+- `Runtime:handle_frontend_event()` for owner-thread key, text, paste, mouse, resize, focus, position and command dispatch.
+- Semantic UI snapshots with document version/length metadata, active theme styles and protocol-aligned view/panel bounds.
+- Theme, style, syntax, workspace and extension registries.
+- Logging through the Kernel's single logger via `host:log`; Runtime has no independent logger.
 - Unit and simulated-Host integration tests, plus static boundary checks.
-- Pipeline, PSX and gix project tooling.
 
 ## Still needed
 
-- The production Backend adapter for the Host API, including the
-  `host:log` → `cdin_kernel_log` mapping (tested today only against a fake Host).
-- Tests against the real Kernel C ABI, including ownership and failure cases.
-- Connection to the Frontend Protocol and a working frontend.
-- Compatibility tests for behaviors that users rely on in the current CDIN code.
-- A reviewed, stable Runtime Host API and UI model contract.
+- Live Lua 5.4 + Backend + Kernel + Runtime integration results on the supported CI runner.
+- A concrete out-of-process Frontend transport (Unix Domain Socket / Windows Named Pipe) and end-to-end GUI implementation.
+- Compatibility tests for behavior and extensions carried over from the existing `cdin` application.
+- A reviewed stable Host API and Runtime-facing extension contract before 1.0.
 
-The Host API, Frontend Protocol model and extension-facing Runtime API in this
-repository are provisional. The Specification remains authoritative: a design
-marked `PROPOSED` there is not made an accepted project contract by this code.
-
-Production integration remains open until the Backend adapter is tested against
-the real Kernel and the Frontend Protocol is connected end to end.
+The Host API remains provisional. Runtime source compatibility is deliberately exact for Host API `0.x`; a Backend with a different minor version must not bypass this startup guard.

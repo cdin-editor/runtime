@@ -20,6 +20,34 @@ function M.register(runtime)
     description = "Do nothing",
   })
 
+  commands:register("document.new", function(_, args)
+    args = args or {}
+    local bytes = args.bytes
+    if bytes == nil then bytes = "" end
+    if type(bytes) ~= "string" then
+      errors.raise("INVALID_ARGUMENT", "document.new bytes must be a byte string")
+    end
+
+    local document = runtime:open_document(bytes)
+    local ok, view = pcall(runtime.create_view, runtime, document.id)
+    if not ok then
+      pcall(runtime.close_document, runtime, document.id)
+      error(errors.normalize(view, "INTERNAL", "create view for new document"), 0)
+    end
+    -- Opening a new document is an explicit navigation action. Focus its first
+    -- view even when another document was already active.
+    runtime.ui:set_focus(view.id)
+
+    return {
+      document_id = document.id,
+      view_id = view.id,
+      version = document.version,
+      length = document.length,
+    }
+  end, {
+    description = "Create a new Kernel-owned document and focus its first view",
+  })
+
   commands:register("document.undo", function(context, args)
     local document = active_document(runtime, context)
     if not document then

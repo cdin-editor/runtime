@@ -41,11 +41,11 @@ function M.new(options)
       logging = nil
     end
     return {
-      host_api = options.host_api or { major = 0, minor = 2, patch = 0 },
+      host_api = options.host_api or { major = 0, minor = 3, patch = 0 },
       kernel_abi = options.kernel_abi or { major = 1, minor = 1, patch = 0 },
       extension_contract = options.extension_contract or { major = 1, minor = 0 },
-      frontend_protocol = options.frontend_protocol or { major = 0, minor = 1, patch = 0 },
-      features = options.features or { documents = true, notifications = true, snapshots = true, transactions = true, batch_edits = true, literal_search = true, ui_model = true, logging = true },
+      frontend_protocol = options.frontend_protocol or { major = 0, minor = 2, patch = 0 },
+      features = options.features or { documents = true, document_lines = true, frontend_events = options.frontend_events ~= false, notifications = true, snapshots = true, transactions = true, batch_edits = true, literal_search = true, ui_model = true, logging = true },
       kernel_features = { transactions = true, snapshots = true, notifications = true, batch = true, search_literal = true, search_bytes = true, search_regex = false },
       logging = logging,
     }
@@ -101,6 +101,65 @@ function M.new(options)
     local bytes = document.bytes:sub(start + 1, math.min(#document.bytes, start + length))
     return { bytes = bytes, version = document.version, total_length = #document.bytes, flags = 0 }
   end
+  function service:read_lines(handle, request)
+    local document = get_doc(handle)
+    check_version(document, request.expected_version)
+    local first_line = request.first_line
+    local line_count = request.line_count
+    local max_bytes = request.max_bytes or 16384
+    if type(first_line) ~= "number" or first_line < 0 or first_line % 1 ~= 0
+        or type(line_count) ~= "number" or line_count < 1 or line_count > 4096 or line_count % 1 ~= 0
+        or type(max_bytes) ~= "number" or max_bytes < 1 or max_bytes % 1 ~= 0 then
+      errors.raise("INVALID_ARGUMENT", "invalid line-window request")
+    end
+
+    -- The Kernel treats CRLF as one terminator and also recognizes lone CR.
+    -- Starts are 1-based here to match Lua string.sub; the public API stays 0-based.
+    local starts = { 1 }
+    local cursor = 1
+    while cursor <= #document.bytes do
+      local byte = document.bytes:byte(cursor)
+      if byte == 13 then
+        if cursor < #document.bytes and document.bytes:byte(cursor + 1) == 10 then
+          cursor = cursor + 1
+        end
+        starts[#starts + 1] = cursor + 1
+      elseif byte == 10 then
+        starts[#starts + 1] = cursor + 1
+      end
+      cursor = cursor + 1
+    end
+
+    local total_lines = #starts
+    if first_line >= total_lines then
+      errors.raise("OUT_OF_RANGE", "first_line is past the end of the document", {
+        requested = first_line, length = total_lines,
+      })
+    end
+
+    local lines, used = {}, 0
+    local last = math.min(total_lines, first_line + line_count)
+    for line_index = first_line + 1, last do
+      local start_offset = starts[line_index]
+      local finish_offset = starts[line_index + 1] and (starts[line_index + 1] - 1) or #document.bytes
+      local bytes = document.bytes:sub(start_offset, finish_offset)
+      if used + #bytes > max_bytes then
+        if #lines == 0 then
+          errors.raise("LIMIT_EXCEEDED", "first requested line exceeds max_bytes", { required = #bytes })
+        end
+        break
+      end
+      lines[#lines + 1] = bytes
+      used = used + #bytes
+    end
+    return {
+      version = document.version,
+      first_line = first_line,
+      total_lines = total_lines,
+      lines = lines,
+    }
+  end
+
   local function mutate(document, request, kind, new_bytes, blob)
     if document.active_txn then errors.raise("BUSY", "document has an active transaction") end
     check_version(document, request.expected_version)

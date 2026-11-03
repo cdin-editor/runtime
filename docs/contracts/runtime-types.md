@@ -42,6 +42,8 @@ but they are not retained as canonical document state.
   focused = true,
   visible = true,
   revision = 3,
+  document_version = 12,
+  document_length = 512,
 }
 ```
 
@@ -54,7 +56,9 @@ rectangles, line wrapping or glyph shaping. The implementation lives in
 
 The published model uses `schema = "cdin.ui-model.v1"`, a monotonically
 increasing `revision`, view snapshots, logical layout, focus, panels, prompt,
-status data and a theme identifier. UI models must be serializable: do not put
+status data, the active theme style map, and per-view `document_version` plus
+`document_length`. The protocol projection is bounded to 32 views and 16 panels
+per snapshot so the message group fits the default bounded output queue. UI models must be serializable: do not put
 functions, userdata, cycles, Host handles or document bytes inside them.
 
 ## Opaque selection-history blob

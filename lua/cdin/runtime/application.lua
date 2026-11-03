@@ -107,9 +107,7 @@ function Runtime:start()
     })
     self.syntax:register("plain", require("cdin.runtime.presentation.syntax.plain"))
     DefaultCommands.register(self)
-    if self.host.ui.publish then
-      self.host.ui:publish(self.ui:snapshot())
-    end
+    self:_publish_ui()
     self.state = "running"
     local runtime_version = require("cdin.runtime.core.version").runtime
     self.events:emit("runtime.started", {
@@ -305,6 +303,21 @@ end
 -- The Backend is responsible for forwarding this model to attached frontends.
 function Runtime:_publish_ui()
   local snapshot = self.ui:snapshot()
+  -- The Frontend renders against an exact document version. Keep only metadata
+  -- here; canonical bytes remain owned by the Kernel.
+  for _, view_snapshot in pairs(snapshot.views) do
+    local document = self.documents.documents[view_snapshot.document_id]
+    if not document or document.state ~= "open" then
+      errors.raise("INVALID_HANDLE", "UI view references a document that is not open", {
+        view_id = view_snapshot.id,
+      })
+    end
+    view_snapshot.document_version = document.version
+    view_snapshot.document_length = document.length
+  end
+  snapshot.theme = self.themes.active
+  snapshot.styles = self.themes:snapshot().styles
+
   local failures = self.events:emit("ui.model_changed", Table.copy(snapshot))
   for _, failure in ipairs(failures) do
     self.log:error(failure.message, { code = failure.code, event = "ui.model_changed" })
@@ -357,6 +370,141 @@ function Runtime:expire_key_sequence()
   local result = self.keymap:expire()
   if result.status == "matched" then return self:_dispatch_chain(result.commands) end
   return result
+end
+
+-- Emit non-document frontend events on the Runtime owner thread. Frontend
+-- geometry remains frontend-owned; resize and mouse coordinates are not
+-- converted into document offsets here.
+function Runtime:_emit_frontend_event(name, payload)
+  local failures = self.events:emit(name, payload)
+  for _, failure in ipairs(failures) do
+    self.log:error(failure.message, { code = failure.code, event = name })
+  end
+  return #failures == 0
+end
+
+function Runtime:_insert_frontend_bytes(bytes)
+  if type(bytes) ~= "string" then
+    errors.raise("INVALID_ARGUMENT", "frontend text payload must be a byte string")
+  end
+  local view = self:focused_view()
+  local document = self:focused_document()
+  if not view or not document then
+    errors.raise("INVALID_STATE", "text input requires a focused document view")
+  end
+  local result = view:replace_selection(document, bytes, {
+    expected_version = document.version,
+  })
+  self:_publish_ui()
+  return { status = "inserted", version = result.version, byte_count = #bytes }
+end
+
+-- Version-pinned line reads are a pull service. The returned strings are
+-- transient exact bytes; this method never stores them on Runtime or View.
+function Runtime:read_view_lines(view_id, first_line, line_count, expected_version)
+  self:_assert_running()
+  if type(view_id) ~= "string" or view_id == "" then
+    errors.raise("INVALID_ARGUMENT", "view_id is required")
+  end
+  local view = self.ui.views[view_id]
+  if not view then errors.raise("NOT_FOUND", "view does not exist", { view_id = view_id }) end
+  local document = self.documents:get(view.document_id)
+  local changed, previous
+  previous = { version = document.version, length = document.length }
+  changed = document:refresh_metadata()
+  if changed then
+    -- External mutations may not have reached the notification pump yet. We
+    -- cannot infer their edit sequence, so clamp offsets and invalidate all
+    -- visible content at the newly observed version instead of guessing.
+    self:_apply_document_edits(document.id, nil, nil, document.length)
+    self:_publish_ui()
+    self.log:debug("document metadata refreshed for line request", {
+      document_id = document.id, previous_version = previous.version,
+      current_version = document.version, length = document.length,
+    })
+  end
+  return document:read_lines(first_line, line_count, expected_version)
+end
+
+-- Called only by the Backend's Lua owner-thread dispatcher. Raw key policy
+-- remains in Runtime; frontends do not resolve key bindings or hit-test text.
+function Runtime:handle_frontend_event(event)
+  self:_assert_running()
+  if type(event) ~= "table" or type(event.type) ~= "string" then
+    errors.raise("INVALID_ARGUMENT", "frontend event must have a type")
+  end
+
+  local event_type = event.type
+  if event_type == "input.key" then
+    if event.action == "release" then return { status = "ignored", reason = "key-release" } end
+    if event.action ~= "press" and event.action ~= "repeat" then
+      errors.raise("INVALID_ARGUMENT", "unsupported key action", { action = tostring(event.action) })
+    end
+    return self:handle_key({ kind = "key_down", key = event.key, modifiers = event.modifiers })
+  elseif event_type == "input.text" then
+    return self:_insert_frontend_bytes(event.text)
+  elseif event_type == "input.paste" then
+    return self:_insert_frontend_bytes(event.bytes)
+  elseif event_type == "input.mouse" then
+    if event.target ~= nil then
+      if type(event.target) ~= "string" or not self.ui.views[event.target] then
+        errors.raise("NOT_FOUND", "mouse target view does not exist", { view_id = event.target })
+      end
+      if self.ui.focus ~= event.target then
+        self.ui:set_focus(event.target)
+        self:_publish_ui()
+      end
+    end
+    self:_emit_frontend_event("frontend.mouse", event)
+    return { status = "observed" }
+  elseif event_type == "view.set_position" then
+    if type(event.view_id) ~= "string" then errors.raise("INVALID_ARGUMENT", "view_id is required") end
+    local view = self.ui.views[event.view_id]
+    if not view then errors.raise("NOT_FOUND", "view does not exist", { view_id = event.view_id }) end
+    local document = self.documents:get(view.document_id)
+    -- Refresh without pinning to the stale client version. External Kernel edits
+    -- must invalidate view state before the Frontend's byte offsets are accepted.
+    local changed = document:refresh_metadata()
+    if changed then
+      self:_apply_document_edits(document.id, nil, nil, document.length)
+      self:_publish_ui()
+    end
+    if type(event.version) ~= "number" or event.version ~= document.version then
+      errors.raise("STALE_VERSION", "view position uses a stale document version", {
+        expected = event.version, current = document.version,
+      })
+    end
+    local anchor, caret = event.anchor, event.caret
+    if type(anchor) ~= "number" or type(caret) ~= "number"
+        or anchor < 0 or caret < 0 or anchor % 1 ~= 0 or caret % 1 ~= 0
+        or anchor > document.length or caret > document.length then
+      errors.raise("OUT_OF_RANGE", "view position is outside the document", {
+        length = document.length,
+      })
+    end
+    self.ui:set_focus(event.view_id)
+    view:set_selection(anchor, caret)
+    self:_publish_ui()
+    return { status = "position-set", version = document.version }
+  elseif event_type == "request.command" then
+    local ok, result = self:dispatch(event.name, event.arguments or {})
+    if not ok then
+      errors.raise("NOT_FOUND", "frontend command is not registered or cannot execute", {
+        command = tostring(event.name),
+      })
+    end
+    return { status = "executed", result = result }
+  elseif event_type == "window.resize" then
+    self:_emit_frontend_event("frontend.window_resized", event)
+    return { status = "observed" }
+  elseif event_type == "focus" then
+    self:_emit_frontend_event("frontend.focus_changed", event)
+    return { status = "observed" }
+  end
+
+  errors.raise("UNSUPPORTED", "frontend event type is not supported by Runtime", {
+    event_type = event_type,
+  })
 end
 
 function Runtime:publish_ui()

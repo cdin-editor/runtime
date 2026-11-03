@@ -19,7 +19,7 @@ runtime:start()
 local started = find(host, function(r) return r.message == "runtime started" end)
 A.truthy(started); A.equal(started.level, "info")
 A.equal(started.fields.component, "cdin-runtime")
-A.equal(started.fields.host_api, "0.2.0"); A.equal(started.fields.kernel_abi, "1.1.0")
+A.equal(started.fields.host_api, "0.3.0"); A.equal(started.fields.kernel_abi, "1.1.0")
 
 -- Document lifecycle is logged by id/version/size, never by content or path.
 local document = runtime:open_document("TOP-SECRET-CONTENT", { path = "/home/user/private-notes.txt" })

@@ -1,4 +1,4 @@
-# Runtime Host API 0.2.0
+# Runtime Host API 0.3.0
 
 **Status:** provisional development contract; not a stable public API.
 
@@ -9,8 +9,9 @@ keep a shadow copy of document bytes/history.
 
 The contract is aligned with CDIN Kernel C ABI `1.1.0` (Kernel package `1.2.1`)
 and CDIN Spec `1.1.0`. ABI `1.1.0` is the first release with the Kernel logging
-API that section 5 depends on. It does not claim that the production Backend
-adapter already exists.
+API that section 5 depends on. The production C adapter is implemented in the
+companion Backend repository; the live cross-repository workflow verifies it
+against this Runtime source.
 
 ## 1. Host descriptor and version negotiation
 
@@ -18,14 +19,14 @@ adapter already exists.
 
 ```lua
 {
-  host_api = { major = 0, minor = 2, patch = 0 },
+  host_api = { major = 0, minor = 3, patch = 0 },
   kernel_abi = { major = 1, minor = 1, patch = 0 },
   extension_contract = { major = 1, minor = 0 },
-  frontend_protocol = { major = 0, minor = 1, patch = 0 },
+  frontend_protocol = { major = 0, minor = 2, patch = 0 },
   features = {
     documents = true, notifications = true, snapshots = true,
     transactions = true, batch_edits = true, literal_search = true,
-    ui_model = true, logging = true,
+    ui_model = true, document_lines = true, frontend_events = true, logging = true,
   },
   kernel_features = {
     transactions = true, snapshots = true, notifications = true,
@@ -41,7 +42,7 @@ adapter already exists.
 ```
 
 Because Host API `0.x` is provisional, the runtime requires an exact host
-major/minor match (`0.2`). Kernel ABI requires major `1`, minor `>= 1`; the
+major/minor match (`0.3`). Kernel ABI requires major `1`, minor `>= 1`; the
 extension contract requires major `1`. The runtime accepts only a frontend
 protocol version compatible with its configured major/minor floor and relies
 on Backend capability negotiation for optional transports.
@@ -107,14 +108,17 @@ are synchronous for ABI 1.1.0.
 - `create(initial_bytes, metadata?) -> { handle, version, length }`
 - `close(handle) -> true`
 - `read(handle, { start, length, expected_version? }) -> { bytes, version, total_length, flags? }`
+- `read_lines(handle, { first_line, line_count, expected_version, max_bytes? }) -> { version, first_line, total_lines, lines: array<byte-string> }`
 - `acquire_snapshot(handle) -> { handle, version, length }`
 - `read_snapshot(snapshot_handle, { start, length }) -> { bytes, version }`
 - `release_snapshot(snapshot_handle) -> true`
 
 When `expected_version` is omitted or `nil`, `read` returns metadata for the
-latest version; `start = 0, length = 0` is the metadata-only resync path. Reads
-return caller-owned transient strings. `DocumentClient` must not store those
-strings on itself. Snapshot handles are pinned leases and must be released.
+latest version; `start = 0, length = 0` is the metadata-only resync path. Reads return caller-owned transient strings. `read_lines` returns a bounded, version-pinned
+window; each line is an exact byte string including its original EOL bytes. The Backend
+may return a complete prefix when `max_bytes` is reached; it never splits a line.
+`DocumentClient` must not store read results on itself. Snapshot handles are pinned
+leases and must be released.
 
 ### Mutations and history
 
@@ -180,9 +184,11 @@ not internal Runtime crashes.
 
 `host.ui:publish(model_snapshot) -> true`
 
-The model is serializable semantic state. Backend translates it to Frontend
-Protocol messages; Runtime does not know which frontends are attached and does
-not draw. The current model schema is `cdin.ui-model.v1` and remains provisional.
+The model is serializable semantic state. Backend validates it and projects it to
+Frontend Protocol 0.2.0 messages on the Lua owner thread. Every publication is a
+complete snapshot ending in one `ui.flush`; Frontends replace projected model state
+atomically at that boundary. Runtime does not know which frontends are attached and
+does not draw. `view.request_lines` is answered from the Kernel through `read_lines`.
 
 ## 5. Required logging service
 
@@ -266,7 +272,7 @@ this integration complete.
 
 ## 8. Stability gate
 
-Host API `0.2.0` is not a stable external contract. A reviewed stability decision
+Host API `0.3.0` is not a stable external contract. A reviewed stability decision
 requires a complete Backend/C adapter, ABI-to-Lua status mapping tests, live
 create/edit/read/notify/undo/redo/close tests against the real Kernel, lifecycle
 failure injection, Lua 5.4 tests, headless Frontend Protocol integration, and an

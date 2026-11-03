@@ -157,12 +157,12 @@ end
 
 return {
   runtime = resolve_runtime_version(),
-  -- Host API 0.2 adds the Kernel-backed logging descriptor (`info.logging`).
-  host_api = { major = 0, minor = 2, patch = 0 },
+  -- Host API 0.3 adds the document line-window service and Frontend event boundary.
+  host_api = { major = 0, minor = 3, patch = 0 },
   -- Kernel ABI 1.1.0 is the first release with the logging API
   -- (`cdin_kernel_log`, `cdin_log_options`) that the Host API relies on.
   kernel_abi = { major = 1, minor = 1, patch = 0 },
-  frontend_protocol = { major = 0, minor = 1, patch = 0 },
+  frontend_protocol = { major = 0, minor = 2, patch = 0 },
   extension_contract = { major = 1, minor = 0 },
   -- The Frontend Protocol is still provisional. Backend negotiates transport;
   -- Runtime validates the negotiated version and never owns the wire protocol.

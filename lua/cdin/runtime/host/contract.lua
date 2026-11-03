@@ -111,6 +111,7 @@ function M.validate(host)
   end
   local required_host_features = {
     "documents",
+    "document_lines",
     "notifications",
     "snapshots",
     "transactions",
@@ -119,6 +120,9 @@ function M.validate(host)
     "ui_model",
     "logging",
   }
+  if type(features.frontend_events) ~= "boolean" then
+    errors.raise("HOST_API_MISMATCH", "frontend_events must be reported as a boolean capability")
+  end
   for _, name in ipairs(required_host_features) do
     if features[name] ~= true then
       errors.raise("HOST_API_MISMATCH", "required host capability is unavailable", { capability = name })
@@ -144,13 +148,13 @@ function M.validate(host)
     end
   end
   if kernel_features.search_regex == true then
-    errors.raise("HOST_API_MISMATCH", "Backend advertised regex under Kernel ABI 1.0.0, where it is unsupported")
+    errors.raise("HOST_API_MISMATCH", "Backend advertised regex under Kernel ABI 1.1.0, where it is unsupported")
   end
   if type(host.documents) ~= "table" then
     errors.raise("HOST_API_MISMATCH", "host.documents service is missing")
   end
   for _, method in ipairs({
-    "create", "close", "read", "replace", "replace_batch", "undo", "redo",
+    "create", "close", "read", "read_lines", "replace", "replace_batch", "undo", "redo",
     "acquire_snapshot", "read_snapshot", "release_snapshot", "begin_transaction",
     "transaction_replace", "transaction_read", "commit_transaction", "abort_transaction",
     "mark_clean", "mark_clean_if_version", "is_clean", "subscribe", "unsubscribe", "drain", "search",

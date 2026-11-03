@@ -33,8 +33,89 @@ A.truthy(redo_ok)
 local redone = document:read(0, 10); A.equal(redone, "aZc")
 
 document:mark_clean(); A.truthy(document:is_clean())
+-- The Frontend event path reaches Runtime on its owner thread and preserves paste bytes.
+local event_document = runtime:open_document("abc")
+local event_view = runtime:create_view(event_document.id)
+local initial_position_event = runtime:handle_frontend_event({
+  type = "view.set_position", view_id = event_view.id, version = event_document.version, anchor = 1, caret = 1,
+})
+A.equal(initial_position_event.status, "position-set")
+local text_event = runtime:handle_frontend_event({ type = "input.text", text = "Q" })
+A.equal(text_event.status, "inserted")
+local after_text = event_document:read(0, 16); A.equal(after_text, "aQbc")
+local paste_event = runtime:handle_frontend_event({ type = "input.paste", bytes = "\0P" })
+A.equal(paste_event.status, "inserted")
+local after_paste = event_document:read(0, 16); A.equal(after_paste, "aQ\0Pbc")
+local position_event = runtime:handle_frontend_event({
+  type = "view.set_position", view_id = event_view.id, version = event_document.version, anchor = 0, caret = 1,
+})
+A.equal(position_event.status, "position-set")
+A.error_code(function()
+  runtime:handle_frontend_event({
+    type = "view.set_position", view_id = event_view.id, version = 0, anchor = 0, caret = 1,
+  })
+end, "STALE_VERSION")
+local key_event = runtime:handle_frontend_event({
+  type = "input.key", key = "e", action = "press", modifiers = { "ctrl" },
+})
+A.equal(key_event.status, "executed")
+local after_key = event_document:read(0, 16); A.equal(after_key, "ZQ\0Pbc")
+local command_event = runtime:handle_frontend_event({ type = "request.command", name = "document.undo", arguments = {} })
+A.equal(command_event.status, "executed")
+local resized_width
+runtime.events:on("frontend.window_resized", function(payload) resized_width = payload.width end)
+runtime:handle_frontend_event({ type = "window.resize", width = 80, height = 24, units = "cells" })
+A.equal(resized_width, 80)
+runtime:handle_frontend_event({ type = "focus", focused = false })
+runtime:handle_frontend_event({
+  type = "input.mouse", action = "press", button = "left", modifiers = {}, target = event_view.id,
+  position = { x = 2, y = 1 },
+})
+runtime:close_document(event_document.id)
+
 local search = document:search("Z", { mode = "literal" }); A.equal(search.count, 1)
 A.error_code(function() document:search("Z", { mode = "regex" }) end, "UNSUPPORTED")
+
+-- A Frontend can create its first empty or preloaded document through Runtime policy.
+local new_document_event = runtime:handle_frontend_event({
+  type = "request.command", name = "document.new", arguments = { bytes = "alpha\r\nbeta\nlast\0" },
+})
+A.equal(new_document_event.status, "executed")
+A.equal(new_document_event.result.length, 17)
+local created_document = runtime.documents:get(new_document_event.result.document_id)
+local created_view = runtime.ui.views[new_document_event.result.view_id]
+A.truthy(created_view ~= nil)
+A.equal(created_view.id, runtime.ui.focus)
+local created_lines = created_document:read_lines(0, 8, created_document.version)
+A.equal(created_lines.total_lines, 3)
+A.equal(created_lines.lines[1], "alpha\r\n")
+A.equal(created_lines.lines[2], "beta\n")
+A.equal(created_lines.lines[3], "last\0")
+runtime:close_document(created_document.id)
+
+-- Version-pinned line service preserves CRLF, LF, NUL and exact document bytes.
+local line_document = runtime:open_document("one\r\ntwo\nlast\0")
+local line_client = runtime.documents:get(line_document.id)
+local line_window = line_client:read_lines(0, 8, 0)
+A.equal(line_window.version, 0)
+A.equal(line_window.total_lines, 3)
+A.equal(line_window.lines[1], "one\r\n")
+A.equal(line_window.lines[2], "two\n")
+A.equal(line_window.lines[3], "last\0")
+A.error_code(function() line_client:read_lines(0, 1, 1) end, "STALE_VERSION")
+local line_view = runtime:create_view(line_document.id)
+line_view.scroll_anchor = line_document.length
+local prior_line_version = line_document.version
+host.documents:replace(line_document.handle, {
+  expected_version = prior_line_version, start = 0, finish = line_document.length, bytes = "x",
+  undo_blob_before = "", undo_blob_after = "",
+})
+A.error_code(function() runtime:read_view_lines(line_view.id, 0, 1, prior_line_version) end,
+  "STALE_VERSION")
+A.equal(line_document.version, prior_line_version + 1)
+A.equal(line_document.length, 1)
+A.equal(line_view.scroll_anchor, 1)
+runtime:close_document(line_document.id)
 
 -- Snapshots remain version-pinned while live document edits continue.
 local snapshot = document:snapshot()
@@ -158,7 +239,7 @@ A.error_code(function()
   bad:start()
 end, "HOST_API_MISMATCH")
 A.error_code(function()
-  local bad = Runtime.new({ host = FakeHost.new({ host_api = { major = 0, minor = 3, patch = 0 } }) })
+  local bad = Runtime.new({ host = FakeHost.new({ host_api = { major = 0, minor = 2, patch = 0 } }) })
   bad:start()
 end, "HOST_API_MISMATCH")
 A.error_code(function()
@@ -166,10 +247,10 @@ A.error_code(function()
   bad:start()
 end, "HOST_API_MISMATCH")
 A.error_code(function()
-  local bad = Runtime.new({ host = FakeHost.new({ frontend_protocol = { major = 0, minor = 2, patch = 0 } }) })
+  local bad = Runtime.new({ host = FakeHost.new({ frontend_protocol = { major = 0, minor = 1, patch = 0 } }) })
   bad:start()
 end, "HOST_API_MISMATCH")
-local incomplete_host = FakeHost.new(); incomplete_host.documents.read = nil
+local incomplete_host = FakeHost.new(); incomplete_host.documents.read_lines = nil
 A.error_code(function() Runtime.new({ host = incomplete_host }):start() end, "HOST_API_MISMATCH")
 
 local shutdown_ok = runtime:shutdown(); A.truthy(shutdown_ok); A.equal(runtime.state, "stopped")

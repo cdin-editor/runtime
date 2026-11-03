@@ -243,7 +243,7 @@ local function emit(self, level, message, fields)
 end
 
 -- Send one record. Returns true when the Host accepted it. Never raises: a
--- logging failure must not mask the operation being reported (Host API 0.2).
+-- logging failure must not mask the operation being reported (Host API 0.3).
 function Logger:log(level, message, fields)
   local ok, result = pcall(emit, self, level, message, fields)
   if ok then

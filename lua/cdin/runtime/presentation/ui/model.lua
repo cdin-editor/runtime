@@ -7,6 +7,10 @@ local PaneTree = require("cdin.runtime.presentation.ui.pane_tree")
 local Model = {}
 Model.__index = Model
 
+-- These limits match one atomic Frontend Protocol projection batch.
+Model.MAX_VIEWS = 32
+Model.MAX_PANELS = 16
+
 function Model.new()
   return setmetatable({
     revision = 0,
@@ -24,6 +28,11 @@ function Model:add_view(view, options)
   options = options or {}
   if self.views[view.id] then
     errors.raise("DUPLICATE_REGISTRATION", "view already exists: " .. view.id)
+  end
+  local view_count = 0
+  for _ in pairs(self.views) do view_count = view_count + 1 end
+  if view_count >= Model.MAX_VIEWS then
+    errors.raise("LIMIT_EXCEEDED", "UI model view limit reached", { limit = Model.MAX_VIEWS })
   end
   if options.split_with ~= nil and not self.views[options.split_with] then
     errors.raise("NOT_FOUND", "split target view does not exist", {
@@ -134,6 +143,16 @@ function Model:set_prompt(prompt)
 end
 
 function Model:set_panel(name, panel)
+  if type(name) ~= "string" or name == "" then
+    errors.raise("INVALID_ARGUMENT", "panel name is required")
+  end
+  if panel ~= nil and self.panels[name] == nil then
+    local panel_count = 0
+    for _ in pairs(self.panels) do panel_count = panel_count + 1 end
+    if panel_count >= Model.MAX_PANELS then
+      errors.raise("LIMIT_EXCEEDED", "UI model panel limit reached", { limit = Model.MAX_PANELS })
+    end
+  end
   self.panels[name] = panel and tablex.copy(panel) or nil
   self:_touch()
 end
