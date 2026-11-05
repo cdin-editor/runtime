@@ -14,6 +14,7 @@ M.codes = {
   CANCELLED = true,
   SHUTDOWN = true,
   UNSUPPORTED = true,
+  UNSAVED_CHANGES = true,
   BUFFER_TOO_SMALL = true,
   VERSION_MISMATCH = true,
   INTERNAL = true,
