@@ -251,18 +251,34 @@ result of the operation being logged: the Runtime logger catches Host errors and
 counts them (`runtime:log_stats()`). Records contain ids, versions, sizes and
 error codes, never document bytes or file paths.
 
-## 6. Optional atomic-save service
+## 6. Optional filesystem services
 
-`host.fs` may provide:
+`host.fs` may provide the following optional methods. They are not required
+during Runtime startup; commands that need an absent method fail closed with
+`UNSUPPORTED`. File I/O remains Backend-owned and Runtime never opens native
+files itself.
 
+- `read_file(path, { max_bytes? }) -> byte-string`
 - `begin_atomic_write(path, options) -> writer_handle`
 - `write_chunk(writer_handle, bytes) -> true`
 - `commit_atomic_write(writer_handle) -> true`
 - `abort_atomic_write(writer_handle) -> true`
 
-The runtime writes a version-pinned snapshot in bounded chunks, commits the
-atomic replacement, then calls `mark_clean_if_version`. This service is optional
-at startup but required for the built-in `document.save` command.
+The read service returns exact file bytes, including NUL, invalid UTF-8, BOM
+and original line terminators. It must enforce the supplied positive `max_bytes`
+limit and the Backend's configured document-size ceiling before returning a Lua
+string. It must not return a partial file when a limit or I/O error is reached.
+A missing read service does not block Runtime startup; the built-in
+`document.open` command returns `UNSUPPORTED`. Missing paths use `NOT_FOUND`,
+size violations use `LIMIT_EXCEEDED`, and operating-system failures use
+`IO_ERROR`; Runtime preserves these structured identities for callers.
+
+The save path writes a version-pinned Kernel snapshot in bounded chunks,
+commits the atomic replacement, then calls `mark_clean_if_version`. On any
+write/commit error, Runtime aborts the temporary writer and closes the snapshot
+lease; the previously published destination must remain unchanged. The write
+service is optional at startup but required for the built-in `document.save`
+command.
 
 ## 7. Kernel ABI mapping
 
