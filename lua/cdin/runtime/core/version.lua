@@ -78,7 +78,27 @@ local function git_command(arguments)
 end
 
 local function from_git()
+  local root = repository_root()
+  if not root then
+    return nil
+  end
+
   local redirect = command_error_redirect()
+  local git_top = read_command(git_command("rev-parse --show-toplevel") .. redirect)
+  if not git_top then
+    return nil
+  end
+
+  -- Installed Runtime modules may live inside another Git checkout (for
+  -- example, CDIN's share/cdin/lua tree). Git walks upward from -C and would
+  -- otherwise report the host application's version as the Runtime version.
+  -- An empty --show-prefix means root is the top-level of the Git repository;
+  -- a non-empty prefix means this is only a nested installation directory.
+  local git_prefix = read_command(git_command("rev-parse --show-prefix") .. redirect)
+  if git_prefix ~= nil then
+    return nil
+  end
+
   local describe = read_command(
     git_command('describe --tags --long --dirty --match "v[0-9]*"') .. redirect
   )
