@@ -336,7 +336,7 @@ function M.new(options)
         errors.raise("INVALID_ARGUMENT", "file path is required")
       end
       if options.fail_file_read then
-        errors.raise("IO_ERROR", "simulated file read failure", { path = path })
+        errors.raise("INTERNAL", "simulated file read failure", { path = path })
       end
       local bytes = files[path]
       if bytes == nil then errors.raise("NOT_FOUND", "file does not exist", { path = path }) end
@@ -353,10 +353,10 @@ function M.new(options)
     end
   end
   function host.fs:begin_atomic_write(path, request)
-    if options.fail_file_begin then errors.raise("IO_ERROR", "simulated atomic-write begin failure") end
+    if options.fail_file_begin then errors.raise("INTERNAL", "simulated atomic-write begin failure") end
     request = request or {}
     if request.overwrite == false and files[path] ~= nil then
-      errors.raise("IO_ERROR", "destination already exists")
+      errors.raise("INTERNAL", "destination already exists")
     end
     return { path = path, parts = {}, open = true, chunks = 0 }
   end
@@ -366,14 +366,14 @@ function M.new(options)
     end
     if options.fail_file_write_after_chunks ~= nil
         and writer.chunks >= options.fail_file_write_after_chunks then
-      errors.raise("IO_ERROR", "simulated interrupted atomic write")
+      errors.raise("INTERNAL", "simulated interrupted atomic write")
     end
     writer.parts[#writer.parts + 1] = bytes
     writer.chunks = writer.chunks + 1
   end
   function host.fs:commit_atomic_write(writer)
     if not writer.open then errors.raise("INVALID_STATE", "writer is closed") end
-    if options.fail_file_commit then errors.raise("IO_ERROR", "simulated atomic-write commit failure") end
+    if options.fail_file_commit then errors.raise("INTERNAL", "simulated atomic-write commit failure") end
     files[writer.path] = table.concat(writer.parts)
     writer.open = false
     return true
