@@ -333,6 +333,16 @@ function Runtime:_publish_ui()
   return self.host.ui:publish(snapshot)
 end
 
+-- Lifecycle commands may return the view they created. Runtime applies that
+-- semantic focus transition centrally before the single final UI publication.
+-- Frontends and transport handlers never infer focus from command names.
+function Runtime:_focus_command_result(result)
+  if type(result) == "table" and type(result.view_id) == "string"
+      and self.ui.views[result.view_id] ~= nil and self.ui.focus ~= result.view_id then
+    self.ui:set_focus(result.view_id)
+  end
+end
+
 function Runtime:dispatch(name, args, context)
   self:_assert_running()
   local supplied = context or {}
@@ -342,7 +352,10 @@ function Runtime:dispatch(name, args, context)
   context.document = context.document or self:focused_document()
   context.view = context.view or self:focused_view()
   local ok, result = self.commands:execute(name, context, args or {})
-  if ok then self:_publish_ui() end
+  if ok then
+    self:_focus_command_result(result)
+    self:_publish_ui()
+  end
   return ok, result
 end
 
@@ -351,7 +364,11 @@ function Runtime:_dispatch_chain(names)
   for _, name in ipairs(names or {}) do
     if self.commands:can_execute(name, context, {}) then
       local ok, result = self.commands:execute(name, context, {})
-      if ok then self:_publish_ui(); return { status = "executed", command = name, result = result } end
+      if ok then
+        self:_focus_command_result(result)
+        self:_publish_ui()
+        return { status = "executed", command = name, result = result }
+      end
     end
   end
   return { status = "unhandled", commands = names or {} }
