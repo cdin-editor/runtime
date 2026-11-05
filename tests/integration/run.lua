@@ -256,6 +256,7 @@ A.error_code(function() Runtime.new({ host = incomplete_host }):start() end, "HO
 
 local shutdown_ok = runtime:shutdown(); A.truthy(shutdown_ok); A.equal(runtime.state, "stopped")
 A.error_code(function() runtime:open_document("x") end, "SHUTDOWN")
+require("integration.document_lifecycle_commands")
 require("integration.logging_tests")
 
 A.report("integration tests")
