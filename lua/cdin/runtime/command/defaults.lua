@@ -70,11 +70,11 @@ function M.register(runtime)
     description = "Save a document snapshot atomically through Backend filesystem services",
     available = function(context, args)
       local document = active_document(runtime, context)
-      local has_path = document ~= nil
+      -- Keep path-backed save commands executable even when the optional Host
+      -- writer is absent. Saver:save owns the typed UNSUPPORTED error; hiding
+      -- the command here would incorrectly turn Ctrl+S into an unhandled key.
+      return document ~= nil
         and (document.path ~= nil or (args and args.path ~= nil))
-      local has_atomic_writer = type(runtime.host.fs) == "table"
-        and type(runtime.host.fs.begin_atomic_write) == "function"
-      return has_path and has_atomic_writer
     end,
   })
 
@@ -159,10 +159,19 @@ function M.register(runtime)
     description = "Open exact file bytes through the optional Backend Host filesystem service",
   })
 
-  commands:register("document.close", function(context)
+  commands:register("document.close", function(context, args)
     local document = active_document(runtime, context)
     if not document then
       return false, "no active document"
+    end
+    args = args or {}
+    -- Never discard the only canonical copy of an edited document implicitly.
+    -- The UI can offer Save / Discard / Cancel; trusted callers must opt into
+    -- destructive close explicitly with { discard = true }.
+    if document:is_clean() ~= true and args.discard ~= true then
+      errors.raise("UNSAVED_CHANGES",
+        "document has unsaved changes; save it or explicitly request discard",
+        { document_id = document.id })
     end
     return runtime:_close_document(document.id, false)
   end, {
