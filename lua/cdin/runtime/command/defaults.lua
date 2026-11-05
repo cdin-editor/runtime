@@ -122,7 +122,6 @@ function M.register(runtime)
     end
     local document = runtime:open_document(initial_bytes, { path = args.path })
     local ok, view = pcall(runtime._create_view, runtime, document.id, nil, false)
-    if ok then runtime.ui:set_focus(view.id) end
     if not ok then
       pcall(runtime.close_document, runtime, document.id)
       error(errors.normalize(view, "INTERNAL", "create document view"), 0)
@@ -145,7 +144,7 @@ function M.register(runtime)
       errors.raise("INTERNAL", "Backend Host file read did not return a byte string")
     end
     local document = runtime:open_document(bytes, { path = args.path })
-    local ok, view = pcall(runtime.create_view, runtime, document.id)
+    local ok, view = pcall(runtime._create_view, runtime, document.id, nil, false)
     if not ok then
       pcall(runtime.close_document, runtime, document.id)
       error(errors.normalize(view, "INTERNAL", "create opened document view"), 0)
