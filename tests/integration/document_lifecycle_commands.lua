@@ -108,11 +108,23 @@ A.equal(new_document.id, created.result.document_id)
 A.truthy(new_document ~= nil)
 A.equal(new_document.length, 0)
 local new_id = new_document.id
-local close_key = runtime:handle_frontend_event({
-  type = "input.key", key = "w", action = "press", modifiers = { "ctrl" },
+A.equal(runtime:handle_frontend_event({ type = "input.text", text = "unsaved" }).status, "inserted")
+A.falsy(new_document:is_clean())
+A.error_code(function()
+  runtime:handle_frontend_event({
+    type = "input.key", key = "w", action = "press", modifiers = { "ctrl" },
+  })
+end, "UNSAVED_CHANGES")
+-- A rejected close must leave both the canonical document and its view alive.
+A.equal(runtime.documents.documents[new_id], new_document)
+A.truthy(runtime.ui.views[created.result.view_id] ~= nil)
+A.falsy(new_document:is_clean())
+local discarded = runtime:handle_frontend_event({
+  type = "request.command", name = "document.close", arguments = { discard = true },
 })
-A.equal(close_key.status, "executed")
+A.equal(discarded.status, "executed")
 A.equal(runtime.documents.documents[new_id], nil)
+A.equal(runtime.ui.views[created.result.view_id], nil)
 
 runtime:close_document(reopened_document.id)
 A.truthy(runtime:shutdown())
@@ -130,6 +142,29 @@ end, "UNSUPPORTED")
 A.equal(#no_reader_runtime.documents:list(), 0)
 A.equal(next(no_reader_runtime.ui.views), nil)
 no_reader_runtime:shutdown()
+
+-- A missing atomic writer must surface the typed UNSUPPORTED failure.
+-- Ctrl+S must not silently become an unhandled key when a document has a path.
+local no_writer_host = FakeHost.new()
+no_writer_host.fs.begin_atomic_write = nil
+local no_writer_runtime = Runtime.new({ host = no_writer_host })
+no_writer_runtime:start()
+local no_writer_document = no_writer_runtime:open_document("original", { path = path })
+no_writer_runtime:create_view(no_writer_document.id)
+no_writer_document:replace(0, 0, "edit", {
+  expected_version = no_writer_document.version,
+})
+A.falsy(no_writer_document:is_clean())
+A.error_code(function()
+  no_writer_runtime:handle_frontend_event({
+    type = "input.key", key = "s", action = "press", modifiers = { "ctrl" },
+  })
+end, "UNSUPPORTED")
+A.falsy(no_writer_document:is_clean())
+A.equal(#no_writer_runtime.documents:list(), 1)
+A.equal(next(no_writer_host.snapshots), nil)
+no_writer_runtime:close_document(no_writer_document.id)
+A.truthy(no_writer_runtime:shutdown())
 
 local missing_file_host = FakeHost.new()
 local missing_file_runtime = Runtime.new({ host = missing_file_host })
