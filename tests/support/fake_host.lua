@@ -330,17 +330,68 @@ function M.new(options)
   end
   host.fs = {}
   local files = {}
-  function host.fs:begin_atomic_write(path) return { path = path, parts = {}, open = true } end
+  if options.read_file ~= false then
+    function host.fs:read_file(path, request)
+      if type(path) ~= "string" or path == "" then
+        errors.raise("INVALID_ARGUMENT", "file path is required")
+      end
+      if options.fail_file_read then
+        errors.raise("IO_ERROR", "simulated file read failure", { path = path })
+      end
+      local bytes = files[path]
+      if bytes == nil then errors.raise("NOT_FOUND", "file does not exist", { path = path }) end
+      local maximum = request and request.max_bytes or options.max_file_read_bytes or math.huge
+      if type(maximum) ~= "number" or maximum <= 0 then
+        errors.raise("INVALID_ARGUMENT", "max_bytes must be positive")
+      end
+      if #bytes > maximum then
+        errors.raise("LIMIT_EXCEEDED", "file exceeds read limit", {
+          requested = #bytes, limit = maximum,
+        })
+      end
+      return bytes
+    end
+  end
+  function host.fs:begin_atomic_write(path, request)
+    if options.fail_file_begin then errors.raise("IO_ERROR", "simulated atomic-write begin failure") end
+    request = request or {}
+    if request.overwrite == false and files[path] ~= nil then
+      errors.raise("IO_ERROR", "destination already exists")
+    end
+    return { path = path, parts = {}, open = true, chunks = 0 }
+  end
   function host.fs:write_chunk(writer, bytes)
-    if not writer.open or type(bytes) ~= "string" then errors.raise("INVALID_STATE", "invalid atomic writer") end
+    if not writer.open or type(bytes) ~= "string" then
+      errors.raise("INVALID_STATE", "invalid atomic writer")
+    end
+    if options.fail_file_write_after_chunks ~= nil
+        and writer.chunks >= options.fail_file_write_after_chunks then
+      errors.raise("IO_ERROR", "simulated interrupted atomic write")
+    end
     writer.parts[#writer.parts + 1] = bytes
+    writer.chunks = writer.chunks + 1
   end
   function host.fs:commit_atomic_write(writer)
     if not writer.open then errors.raise("INVALID_STATE", "writer is closed") end
-    files[writer.path] = table.concat(writer.parts); writer.open = false; return true
+    if options.fail_file_commit then errors.raise("IO_ERROR", "simulated atomic-write commit failure") end
+    files[writer.path] = table.concat(writer.parts)
+    writer.open = false
+    return true
   end
-  function host.fs:abort_atomic_write(writer) writer.open = false; writer.parts = {}; return true end
+  function host.fs:abort_atomic_write(writer)
+    host.fs.aborted_writers = (host.fs.aborted_writers or 0) + 1
+    writer.open = false
+    writer.parts = {}
+    return true
+  end
   function host.fs:read_test_file(path) return files[path] end
+  function host.fs:write_test_file(path, bytes)
+    if type(path) ~= "string" or path == "" or type(bytes) ~= "string" then
+      errors.raise("INVALID_ARGUMENT", "write_test_file requires path and bytes")
+    end
+    files[path] = bytes
+    return true
+  end
   return host
 end
 
