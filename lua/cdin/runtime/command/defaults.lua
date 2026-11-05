@@ -121,7 +121,7 @@ function M.register(runtime)
       errors.raise("INVALID_ARGUMENT", "document.new path must be a non-empty string")
     end
     local document = runtime:open_document(initial_bytes, { path = args.path })
-    local ok, view = pcall(runtime.create_view, runtime, document.id)
+    local ok, view = pcall(runtime._create_view, runtime, document.id, nil, false)
     if not ok then
       pcall(runtime.close_document, runtime, document.id)
       error(errors.normalize(view, "INTERNAL", "create document view"), 0)
@@ -164,7 +164,7 @@ function M.register(runtime)
     if not document then
       return false, "no active document"
     end
-    return runtime:close_document(document.id)
+    return runtime:_close_document(document.id, false)
   end, {
     description = "Close the focused document and remove its views",
     available = function(context)
