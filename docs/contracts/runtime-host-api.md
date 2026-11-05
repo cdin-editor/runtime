@@ -269,7 +269,9 @@ and original line terminators. It must enforce the supplied positive `max_bytes`
 limit and the Backend's configured document-size ceiling before returning a Lua
 string. It must not return a partial file when a limit or I/O error is reached.
 A missing read service does not block Runtime startup; the built-in
-`document.open` command returns `UNSUPPORTED`.
+`document.open` command returns `UNSUPPORTED`. Missing paths use `NOT_FOUND`,
+size violations use `LIMIT_EXCEEDED`, and operating-system failures use
+`IO_ERROR`; Runtime preserves these structured identities for callers.
 
 The save path writes a version-pinned Kernel snapshot in bounded chunks,
 commits the atomic replacement, then calls `mark_clean_if_version`. On any
