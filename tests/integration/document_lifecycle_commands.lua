@@ -162,7 +162,7 @@ A.error_code(function()
 end, "UNSUPPORTED")
 A.falsy(no_writer_document:is_clean())
 A.equal(#no_writer_runtime.documents:list(), 1)
-A.equal(next(no_writer_host.snapshots), nil)
+A.equal(no_writer_host.fs:read_test_file(path), nil)
 no_writer_runtime:close_document(no_writer_document.id)
 A.truthy(no_writer_runtime:shutdown())
 
