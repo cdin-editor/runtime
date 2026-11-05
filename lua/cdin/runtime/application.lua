@@ -165,7 +165,7 @@ function Runtime:save_document(id, path, options)
   return result
 end
 
-function Runtime:close_document(id)
+function Runtime:_close_document(id, publish)
   self:_assert_running()
   self.documents:get(id) -- Fail before mutating the UI for an unknown identifier.
   -- Detach views first so a close error cannot leave UI references to a dead handle.
@@ -177,14 +177,18 @@ function Runtime:close_document(id)
     self.ui:remove_view(view_id)
   end
   local ok, result = pcall(self.documents.close, self.documents, id)
-  self:_publish_ui()
+  if publish ~= false then self:_publish_ui() end
   if not ok then
     error(errors.normalize(result, "INTERNAL", "close document"), 0)
   end
   return result
 end
 
-function Runtime:create_view(document_id, options)
+function Runtime:close_document(id)
+  return self:_close_document(id, true)
+end
+
+function Runtime:_create_view(document_id, options, publish)
   self:_assert_running()
   self.documents:get(document_id)
   if options ~= nil and type(options) ~= "table" then
@@ -197,8 +201,12 @@ function Runtime:create_view(document_id, options)
     document_id = document_id,
   })
   self.ui:add_view(view, options)
-  self:_publish_ui()
+  if publish ~= false then self:_publish_ui() end
   return view
+end
+
+function Runtime:create_view(document_id, options)
+  return self:_create_view(document_id, options, true)
 end
 
 function Runtime:focused_view() return self.ui:focused_view() end
