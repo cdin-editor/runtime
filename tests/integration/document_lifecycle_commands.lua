@@ -85,6 +85,7 @@ local reopened_document = runtime.documents:get(reopened.result.document_id)
 A.equal(reopened_document:read(0, #expected + 8), expected)
 local latest_model = host.published[#host.published]
 A.equal(latest_model.schema, "cdin.ui-model.v1")
+A.equal(latest_model.focus, reopened.result.view_id)
 local rendered_document_version
 for _, view_model in pairs(latest_model.views) do
   if view_model.document_id == reopened_document.id then
