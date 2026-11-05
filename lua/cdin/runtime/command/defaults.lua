@@ -110,6 +110,76 @@ function M.register(runtime)
   end, {
     description = "Replace a byte range through the document Host API",
   })
+
+  commands:register("document.new", function(_, args)
+    local initial_bytes = args.initial_bytes
+    if initial_bytes == nil then initial_bytes = "" end
+    if type(initial_bytes) ~= "string" then
+      errors.raise("INVALID_ARGUMENT", "document.new initial_bytes must be a byte string")
+    end
+    if args.path ~= nil and (type(args.path) ~= "string" or args.path == "") then
+      errors.raise("INVALID_ARGUMENT", "document.new path must be a non-empty string")
+    end
+    local document = runtime:open_document(initial_bytes, { path = args.path })
+    local ok, view = pcall(runtime.create_view, runtime, document.id)
+    if not ok then
+      pcall(runtime.close_document, runtime, document.id)
+      error(errors.normalize(view, "INTERNAL", "create document view"), 0)
+    end
+    return { document_id = document.id, view_id = view.id, version = document.version }
+  end, {
+    description = "Create an empty or byte-initialized document and focus its first view",
+  })
+
+  commands:register("document.open", function(_, args)
+    if type(args.path) ~= "string" or args.path == "" then
+      errors.raise("INVALID_ARGUMENT", "document.open requires a non-empty path")
+    end
+    local fs = runtime.host.fs
+    if type(fs) ~= "table" or type(fs.read_file) ~= "function" then
+      errors.raise("UNSUPPORTED", "Backend Host does not provide bounded file reads")
+    end
+    local bytes = fs:read_file(args.path, { max_bytes = args.max_bytes })
+    if type(bytes) ~= "string" then
+      errors.raise("INTERNAL", "Backend Host file read did not return a byte string")
+    end
+    local document = runtime:open_document(bytes, { path = args.path })
+    local ok, view = pcall(runtime.create_view, runtime, document.id)
+    if not ok then
+      pcall(runtime.close_document, runtime, document.id)
+      error(errors.normalize(view, "INTERNAL", "create opened document view"), 0)
+    end
+    runtime.log:info("document opened", {
+      document_id = document.id,
+      version = document.version,
+      bytes = document.length,
+    })
+    return { document_id = document.id, view_id = view.id, version = document.version }
+  end, {
+    description = "Open exact file bytes through the optional Backend Host filesystem service",
+  })
+
+  commands:register("document.close", function(context)
+    local document = active_document(runtime, context)
+    if not document then
+      return false, "no active document"
+    end
+    return runtime:close_document(document.id)
+  end, {
+    description = "Close the focused document and remove its views",
+    available = function(context)
+      return context.document ~= nil or runtime:focused_document() ~= nil
+    end,
+  })
+
+  -- FE-016 / PROTO-041: default editing shortcuts are Runtime policy. The
+  -- Frontend emits raw key events and never duplicates or interprets bindings.
+  runtime.keymap:bind("ctrl+n", "document.new", { owner = "core" })
+  runtime.keymap:bind("ctrl+s", "document.save", { owner = "core" })
+  runtime.keymap:bind("ctrl+z", "document.undo", { owner = "core" })
+  runtime.keymap:bind("ctrl+shift+z", "document.redo", { owner = "core" })
+  runtime.keymap:bind("ctrl+w", "document.close", { owner = "core" })
+
 end
 
 return M
