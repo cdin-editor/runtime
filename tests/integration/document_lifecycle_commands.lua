@@ -81,6 +81,7 @@ local reopened = runtime:handle_frontend_event({
   arguments = { path = path },
 })
 A.equal(reopened.status, "executed")
+A.equal(runtime.ui.focus, reopened.result.view_id)
 local reopened_document = runtime.documents:get(reopened.result.document_id)
 A.equal(reopened_document:read(0, #expected + 8), expected)
 local latest_model = host.published[#host.published]
@@ -100,7 +101,10 @@ local created = runtime:handle_frontend_event({
   type = "input.key", key = "n", action = "press", modifiers = { "ctrl" },
 })
 A.equal(created.status, "executed")
+A.equal(created.command, "document.new")
+A.equal(runtime.ui.focus, created.result.view_id)
 local new_document = runtime:focused_document()
+A.equal(new_document.id, created.result.document_id)
 A.truthy(new_document ~= nil)
 A.equal(new_document.length, 0)
 local new_id = new_document.id
