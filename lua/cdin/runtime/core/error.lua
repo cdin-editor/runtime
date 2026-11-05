@@ -17,6 +17,7 @@ M.codes = {
   BUFFER_TOO_SMALL = true,
   VERSION_MISMATCH = true,
   INTERNAL = true,
+  IO_ERROR = true,
   HOST_API_MISMATCH = true,
   BAD_EXTENSION = true,
   DUPLICATE_REGISTRATION = true,
