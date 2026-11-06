@@ -263,6 +263,28 @@ A.error_code(function()
   resolver_runtime.plugins:load("module-escape", module_path_escape, {})
 end, "BAD_EXTENSION")
 A.falsy(resolver_runtime.commands:get("module-escape.command"))
+
+-- Dotted module identifiers must accept ordinary segments and reject empty
+-- segments/path syntax before the resolver is called.
+local invalid_module_names = {
+  ".leading",
+  "trailing.",
+  "double..dot",
+  "helpers/escape",
+  "helpers\\\\escape",
+  "../outside",
+}
+for index, module_name in ipairs(invalid_module_names) do
+  local plugin_name = "invalid-module-" .. index
+  local source = "return { init = function() require(" .. string.format("%q", module_name) .. ") end }"
+  local resolver_calls_before = #resolver_calls
+  A.error_code(function()
+    resolver_runtime.plugins:load(plugin_name, source, {})
+  end, "BAD_EXTENSION")
+  A.equal(#resolver_calls, resolver_calls_before)
+  A.falsy(resolver_runtime.commands:get(plugin_name .. ".command"))
+end
+
 A.truthy(resolver_runtime:shutdown())
 
 local missing_resolver_runtime = Runtime.new({
