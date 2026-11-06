@@ -54,6 +54,14 @@ function Sandbox:_environment(plugin_name)
     if type(module_name) ~= "string" or module_name == "" then
       errors.raise("INVALID_ARGUMENT", "require name must be a string")
     end
+    -- The Backend resolver maps dotted Lua module names within one extension
+    -- namespace. Reject path syntax here as defense in depth; the Backend must
+    -- still enforce canonical filesystem confinement for the resolved file.
+    if #module_name > 256 or not module_name:match("^[%w_%-]+([.][%w_%-]+)*$") then
+      errors.raise("PERMISSION_DENIED", "extension module name is outside its namespace", {
+        module = module_name,
+      })
+    end
     if self.cache[module_name] ~= nil then
       return self.cache[module_name]
     end
