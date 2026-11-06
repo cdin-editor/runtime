@@ -167,7 +167,9 @@ local module = sandbox:load("safe", "return { init = function(core, config) core
   commands = { register = function(_, name) A.equal(name, "safe.ok") end }, keymap = {}, events = {}, log = function() end, ui = {},
 }, {})
 A.equal(type(module.init), "function")
-A.error_code(function() sandbox:load("unsafe", "return { init = function() return os.execute('x') end }", {}, {}) end, "BAD_EXTENSION")
+-- Accessing a forbidden global is a capability denial, not a generic malformed
+-- extension. Preserve the sandbox's stable authorization error code.
+A.error_code(function() sandbox:load("unsafe", "return { init = function() return os.execute('x') end }", {}, {}) end, "PERMISSION_DENIED")
 A.error_code(function() sandbox:load("global", "leak = true; return {}", {}, {}) end, "BAD_EXTENSION")
 
 require("unit.log_tests")
