@@ -117,6 +117,7 @@ function Sandbox:_environment(plugin_name)
     local ok, result = pcall(chunk)
     self.active[module_name] = nil
     if not ok then
+      if errors.is(result) then error(result, 0) end
       errors.raise("BAD_EXTENSION", "extension module failed", {
         module = module_name,
         cause = tostring(result),
@@ -177,6 +178,7 @@ function Sandbox:load(plugin_name, source, core_facade, config, chunk_name)
 
   local ok, module = pcall(chunk)
   if not ok then
+    if errors.is(module) then error(module, 0) end
     errors.raise("BAD_EXTENSION", "extension entry failed", {
       plugin = plugin_name,
       cause = tostring(module),
@@ -201,6 +203,7 @@ function Sandbox:load(plugin_name, source, core_facade, config, chunk_name)
   if module.init then
     local init_ok, init_error = pcall(module.init, core_facade, config)
     if not init_ok then
+      if errors.is(init_error) then error(init_error, 0) end
       errors.raise("BAD_EXTENSION", "extension init failed", {
         plugin = plugin_name,
         cause = tostring(init_error),
