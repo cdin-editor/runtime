@@ -172,6 +172,28 @@ A.equal(type(module.init), "function")
 A.error_code(function() sandbox:load("unsafe", "return { init = function() return os.execute('x') end }", {}, {}) end, "PERMISSION_DENIED")
 A.error_code(function() sandbox:load("global", "leak = true; return {}", {}, {}) end, "PERMISSION_DENIED")
 
+-- RT-013 | Extension sandbox denies ambient capabilities without making
+-- ordinary capability probes themselves fail extension initialization.
+local capability_probe = sandbox:load("capability-probe", [[
+return {
+  probe = function()
+    local denied = { "io", "os", "debug", "package", "dofile", "loadfile" }
+    for _, name in ipairs(denied) do
+      if pcall(function() return _G[name] end) then return false, "ambient:" .. name end
+    end
+    local original_pi = math.pi
+    if pcall(function() math.pi = 0 end) then return false, "mutable-math" end
+    if math.pi ~= original_pi then return false, "math-mutated" end
+    if pcall(require, "unapproved.module") then return false, "require-without-resolver" end
+    if pcall(function() _G.cdin_test_escape = true end) then return false, "global-write" end
+    return true
+  end,
+}
+]], {}, {})
+local capability_ok, capability_reason = capability_probe.probe()
+A.truthy(capability_ok, capability_reason)
+
+
 require("unit.log_tests")
 
 A.report("unit tests")
