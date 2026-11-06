@@ -287,6 +287,29 @@ end
 
 A.truthy(resolver_runtime:shutdown())
 
+-- Structured Backend resolver failures must survive nested require and
+-- extension initialization instead of being flattened to BAD_EXTENSION.
+local structured_error_runtime = Runtime.new({
+  host = FakeHost.new(),
+  module_resolver = function(_, module_name)
+    if module_name == "init" then
+      return [[return { init = function() require("helpers.too_large") end }]]
+    end
+    error({
+      domain = "cdin.runtime",
+      code = "LIMIT_EXCEEDED",
+      message = "extension source exceeds configured size",
+      details = { module = module_name },
+    })
+  end,
+})
+structured_error_runtime:start()
+A.error_code(function()
+  structured_error_runtime:load_extension("oversized-extension", {})
+end, "LIMIT_EXCEEDED")
+A.equal(#structured_error_runtime:list_extensions(), 0)
+A.truthy(structured_error_runtime:shutdown())
+
 local missing_resolver_runtime = Runtime.new({
   host = FakeHost.new(),
   module_resolver = function() return nil end,
