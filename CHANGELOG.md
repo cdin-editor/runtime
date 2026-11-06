@@ -19,7 +19,6 @@
   the Backend resolver. Backend must still enforce canonical path confinement,
   symlink/reparse-point protection and source-size limits.
 
-
 ## [1.0.0-rc.1] - 2026-11-04
 
 ### Added
