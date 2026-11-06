@@ -29,9 +29,25 @@ return {
 return a table. Initialization failure rolls back registrations for that
 extension and does not call its unload hook. Explicit unload invokes `unload`
 once, then removes the extension's commands, keymap contributions and event
-listeners. Runtime shutdown drops registrations without invoking extension
-unload hooks; this preserves the stated current contract and avoids running
-arbitrary extension code while the runtime is closing.
+listeners, styles, themes and syntax contributions. Runtime shutdown drops
+registrations without invoking extension unload hooks; this preserves the
+stated current contract and avoids running arbitrary extension code while
+the runtime is closing.
+
+### Duplicate, unload and shutdown semantics
+
+- Loading a name that is already active is idempotent: Runtime returns the
+  existing active record without resolving the entry again or re-running
+  `init`. There is no in-place hot reload; explicitly unload the extension
+  before loading that name again.
+- If `unload()` raises, Runtime still removes the extension's owned commands,
+  keymaps, event listeners, styles, themes and syntax registrations and
+  removes the active record before returning the structured error. A later
+  load of the same name starts from a clean lifecycle state.
+- Unloading an unknown name returns `false` and performs no work.
+- Manager shutdown removes all active owner-scoped contributions and clears
+  the active set without invoking extension `unload()` hooks. Shutdown is
+  cleanup, not a sequence of user-visible explicit unload operations.
 
 ## Capability facade
 
