@@ -18,6 +18,22 @@ local function readonly(source, label)
   })
 end
 
+local function valid_module_name(module_name)
+  if type(module_name) ~= "string" or module_name == "" or #module_name > 256 then
+    return false
+  end
+  if module_name:sub(1, 1) == "." or module_name:sub(-1) == "." or
+      module_name:find("..", 1, true) then
+    return false
+  end
+  for segment in module_name:gmatch("[^.]+") do
+    if not segment:match("^[%w_%-]+$") then
+      return false
+    end
+  end
+  return true
+end
+
 function Sandbox.new(options)
   options = options or {}
   return setmetatable({
@@ -57,7 +73,7 @@ function Sandbox:_environment(plugin_name)
     -- The Backend resolver maps dotted Lua module names within one extension
     -- namespace. Reject path syntax here as defense in depth; the Backend must
     -- still enforce canonical filesystem confinement for the resolved file.
-    if #module_name > 256 or not module_name:match("^[%w_%-]+([.][%w_%-]+)*$") then
+    if not valid_module_name(module_name) then
       errors.raise("PERMISSION_DENIED", "extension module name is outside its namespace", {
         module = module_name,
       })
