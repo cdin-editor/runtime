@@ -1,5 +1,25 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Resolver-backed extension loading through the trusted Runtime embedding API:
+  `load_extension`, `unload_extension` and `list_extensions`.
+- Entry modules are resolved as `init` within the extension namespace; nested
+  `require` accepts bounded dotted module identifiers only.
+- Resolver-backed lifecycle tests cover module loading, owner scoping, unload
+  cleanup, unavailable resolver failure and path-traversal rejection.
+
+### Security
+
+- Extension lifecycle methods are not exposed as Frontend Protocol commands.
+  Loading remains disabled when no approved Backend resolver is supplied.
+- Runtime rejects path-like extension and nested module names before they reach
+  the Backend resolver. Backend must still enforce canonical path confinement,
+  symlink/reparse-point protection and source-size limits.
+
+
 ## [1.0.0-rc.1] - 2026-11-04
 
 ### Added
