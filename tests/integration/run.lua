@@ -209,6 +209,65 @@ end, unload = function() error("must not run after init failure") end }]]
 A.error_code(function() runtime.plugins:load("broken", failed_plugin, {}) end, "BAD_EXTENSION")
 A.falsy(runtime.commands:get("plugin.partial"))
 
+-- Resolver-backed extension lifecycle is available only to trusted Runtime
+-- embedders. It is deliberately not registered as a Frontend Protocol command.
+A.equal(#runtime:list_extensions(), 0)
+A.equal(runtime.commands:get("extension.load"), nil)
+A.error_code(function() runtime:load_extension("disabled", {}) end, "UNSUPPORTED")
+
+local extension_sources = {
+  init = [[
+    local greeting = require("helpers.greeting")
+    return {
+      init = function(core, config)
+        core.commands:register("resolved.greeting", function()
+          return greeting.value .. (config.suffix or "")
+        end)
+      end,
+      unload = function() end
+    }
+  ]],
+  ["helpers.greeting"] = [[return { value = "hello" }]],
+}
+local resolver_calls = {}
+local resolver_runtime = Runtime.new({
+  host = FakeHost.new(),
+  module_resolver = function(owner, module_name)
+    resolver_calls[#resolver_calls + 1] = owner .. ":" .. module_name
+    local source = extension_sources[module_name]
+    if source == nil then return nil end
+    return source, "extension://" .. owner .. "/" .. module_name
+  end,
+})
+resolver_runtime:start()
+local resolved = resolver_runtime:load_extension("sample-resolved", { suffix = "!" })
+A.equal(resolved.name, "sample-resolved")
+A.equal(resolved.state, "active")
+A.equal(resolved.source, "resolver")
+A.equal(resolver_runtime.commands:execute("resolved.greeting", {}, {}), true)
+local _, resolved_value = resolver_runtime.commands:execute("resolved.greeting", {}, {})
+A.equal(resolved_value, "hello!")
+A.equal(resolver_calls[1], "sample-resolved:init")
+A.equal(resolver_calls[2], "sample-resolved:helpers.greeting")
+local listed_extensions = resolver_runtime:list_extensions()
+A.equal(#listed_extensions, 1)
+A.equal(listed_extensions[1].name, "sample-resolved")
+A.truthy(resolver_runtime:unload_extension("sample-resolved"))
+A.falsy(resolver_runtime.commands:get("resolved.greeting"))
+A.equal(#resolver_runtime:list_extensions(), 0)
+A.truthy(resolver_runtime:shutdown())
+
+local missing_resolver_runtime = Runtime.new({
+  host = FakeHost.new(),
+  module_resolver = function() return nil end,
+})
+missing_resolver_runtime:start()
+A.error_code(function()
+  missing_resolver_runtime:load_extension("missing-extension", {})
+end, "NOT_FOUND")
+A.equal(#missing_resolver_runtime:list_extensions(), 0)
+A.truthy(missing_resolver_runtime:shutdown())
+
 -- CDIN Runtime runs in its own Lua state; strict globals are installed before
 -- the rest of the runtime modules load.
 A.falsy(pcall(function() cdin_runtime_undeclared_global = true end))
