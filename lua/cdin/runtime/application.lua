@@ -165,6 +165,32 @@ function Runtime:save_document(id, path, options)
   return result
 end
 
+-- Extension lifecycle is a trusted embedding API, not a Frontend
+-- Protocol command. A caller must already have local application authority;
+-- remote Frontend sessions cannot use this method to load local code.
+function Runtime:load_extension(name, config, options)
+  self:_assert_running()
+  if config ~= nil and type(config) ~= "table" then
+    errors.raise("INVALID_ARGUMENT", "extension config must be a table")
+  end
+  local record = self.plugins:load_resolved(name, config or {}, options)
+  return {
+    name = record.name,
+    state = record.state,
+    source = record.source,
+  }
+end
+
+function Runtime:unload_extension(name)
+  self:_assert_running()
+  return self.plugins:unload(name)
+end
+
+function Runtime:list_extensions()
+  self:_assert_running()
+  return self.plugins:list()
+end
+
 function Runtime:_close_document(id, publish)
   self:_assert_running()
   self.documents:get(id) -- Fail before mutating the UI for an unknown identifier.
