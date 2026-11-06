@@ -173,6 +173,9 @@ function Runtime:load_extension(name, config, options)
   if config ~= nil and type(config) ~= "table" then
     errors.raise("INVALID_ARGUMENT", "extension config must be a table")
   end
+  if options ~= nil and type(options) ~= "table" then
+    errors.raise("INVALID_ARGUMENT", "extension options must be a table")
+  end
   local record = self.plugins:load_resolved(name, config or {}, options)
   return {
     name = record.name,
