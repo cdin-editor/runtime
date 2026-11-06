@@ -199,7 +199,10 @@ A.falsy(runtime.syntax:get("plugin-sample") ~= nil)
 local command_takeover = [[return { init = function(core)
   core.commands:register("document.undo", function() return "hijacked" end, { overwrite = true })
 end }]]
-A.error_code(function() runtime.plugins:load("takeover", command_takeover, {}) end, "BAD_EXTENSION")
+local takeover_error = A.error_code(function() runtime.plugins:load("takeover", command_takeover, {}) end, "PERMISSION_DENIED")
+A.equal(takeover_error.domain, "cdin.runtime")
+A.equal(takeover_error.details.command, "document.undo")
+A.equal(takeover_error.details.owner, "core")
 A.truthy(runtime.commands:get("document.undo"))
 A.equal(runtime.commands:get("document.undo").owner, "core")
 local failed_plugin = [[return { init = function(core)
@@ -261,7 +264,7 @@ A.equal(#resolver_runtime:list_extensions(), 0)
 local module_path_escape = [[return { init = function() require("../outside") end }]]
 A.error_code(function()
   resolver_runtime.plugins:load("module-escape", module_path_escape, {})
-end, "BAD_EXTENSION")
+end, "PERMISSION_DENIED")
 A.falsy(resolver_runtime.commands:get("module-escape.command"))
 
 -- Dotted module identifiers must accept ordinary segments and reject empty
@@ -280,7 +283,7 @@ for index, module_name in ipairs(invalid_module_names) do
   local resolver_calls_before = #resolver_calls
   A.error_code(function()
     resolver_runtime.plugins:load(plugin_name, source, {})
-  end, "BAD_EXTENSION")
+  end, "PERMISSION_DENIED")
   A.equal(#resolver_calls, resolver_calls_before)
   A.falsy(resolver_runtime.commands:get(plugin_name .. ".command"))
 end
@@ -304,11 +307,82 @@ local structured_error_runtime = Runtime.new({
   end,
 })
 structured_error_runtime:start()
-A.error_code(function()
+local nested_resolver_error = A.error_code(function()
   structured_error_runtime:load_extension("oversized-extension", {})
 end, "LIMIT_EXCEEDED")
+A.equal(nested_resolver_error.domain, "cdin.runtime")
+A.equal(nested_resolver_error.details.module, "helpers.too_large")
 A.equal(#structured_error_runtime:list_extensions(), 0)
 A.truthy(structured_error_runtime:shutdown())
+
+
+-- A structured resolver failure while resolving the entry source must retain
+-- its Backend code and details before any extension is registered.
+local structured_entry_resolver_runtime = Runtime.new({
+  host = FakeHost.new(),
+  module_resolver = function()
+    error({
+      domain = "cdin.runtime",
+      code = "IO_ERROR",
+      message = "extension entry could not be read",
+      details = { module = "init" },
+    })
+  end,
+})
+structured_entry_resolver_runtime:start()
+local entry_resolver_error = A.error_code(function()
+  structured_entry_resolver_runtime:load_extension("entry-read-failure", {})
+end, "IO_ERROR")
+A.equal(entry_resolver_error.domain, "cdin.runtime")
+A.equal(entry_resolver_error.details.module, "init")
+A.equal(#structured_entry_resolver_runtime:list_extensions(), 0)
+A.truthy(structured_entry_resolver_runtime:shutdown())
+
+-- Structured errors raised by the entry chunk and init hook must cross the
+-- sandbox boundary unchanged; failed init still rolls back owned contributions.
+local structured_entry_runtime = Runtime.new({
+  host = FakeHost.new(),
+  module_resolver = function()
+    return [[error({
+      domain = "cdin.runtime",
+      code = "IO_ERROR",
+      message = "entry execution failed",
+      details = { stage = "entry" },
+    })]]
+  end,
+})
+structured_entry_runtime:start()
+local entry_error = A.error_code(function()
+  structured_entry_runtime:load_extension("entry-execution-failure", {})
+end, "IO_ERROR")
+A.equal(entry_error.details.stage, "entry")
+A.equal(#structured_entry_runtime:list_extensions(), 0)
+A.truthy(structured_entry_runtime:shutdown())
+
+local structured_init_runtime = Runtime.new({
+  host = FakeHost.new(),
+  module_resolver = function()
+    return [[return {
+      init = function(core)
+        core.commands:register("structured.init.partial", function() return true end)
+        error({
+          domain = "cdin.runtime",
+          code = "PERMISSION_DENIED",
+          message = "extension initialization was denied",
+          details = { stage = "init" },
+        })
+      end,
+    }]]
+  end,
+})
+structured_init_runtime:start()
+local init_error = A.error_code(function()
+  structured_init_runtime:load_extension("init-permission-failure", {})
+end, "PERMISSION_DENIED")
+A.equal(init_error.details.stage, "init")
+A.falsy(structured_init_runtime.commands:get("structured.init.partial"))
+A.equal(#structured_init_runtime:list_extensions(), 0)
+A.truthy(structured_init_runtime:shutdown())
 
 local missing_resolver_runtime = Runtime.new({
   host = FakeHost.new(),
