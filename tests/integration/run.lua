@@ -248,6 +248,13 @@ A.error_code(function()
 end, "INVALID_ARGUMENT")
 local resolved = resolver_runtime:load_extension("sample-resolved", { suffix = "!" })
 A.equal(resolved.name, "sample-resolved")
+-- A duplicate load is idempotent: it returns the active record without
+-- resolving modules again or re-running init with new configuration.
+local resolver_calls_before_duplicate = #resolver_calls
+local duplicate_resolved = resolver_runtime:load_extension("sample-resolved", { suffix = "ignored" })
+A.equal(duplicate_resolved.name, resolved.name)
+A.equal(duplicate_resolved.state, "active")
+A.equal(#resolver_calls, resolver_calls_before_duplicate)
 A.equal(resolved.state, "active")
 A.equal(resolved.source, "resolver")
 local resolved_ok, resolved_value = resolver_runtime.commands:execute("resolved.greeting", {}, {})
@@ -287,6 +294,59 @@ for index, module_name in ipairs(invalid_module_names) do
   A.equal(#resolver_calls, resolver_calls_before)
   A.falsy(resolver_runtime.commands:get(plugin_name .. ".command"))
 end
+
+-- An unload-hook failure still releases every owner-scoped contribution and
+-- removes the name from the active set. The structured failure is returned
+-- only after cleanup has completed.
+local unload_failure_runtime = Runtime.new({
+  host = FakeHost.new(),
+  module_resolver = function()
+    return [[return {
+      init = function(core)
+        core.commands:register("unload.failure.command", function() return true end)
+      end,
+      unload = function()
+        error({
+          domain = "cdin.runtime",
+          code = "PERMISSION_DENIED",
+          message = "extension cleanup was denied",
+          details = { stage = "unload" },
+        })
+      end,
+    }]]
+  end,
+})
+unload_failure_runtime:start()
+unload_failure_runtime:load_extension("unload-failure", {})
+A.truthy(unload_failure_runtime.commands:get("unload.failure.command"))
+local unload_error = A.error_code(function()
+  unload_failure_runtime:unload_extension("unload-failure")
+end, "PERMISSION_DENIED")
+A.equal(unload_error.details.stage, "unload")
+A.equal(#unload_failure_runtime:list_extensions(), 0)
+A.equal(unload_failure_runtime.commands:get("unload.failure.command"), nil)
+A.falsy(unload_failure_runtime:unload_extension("unload-failure"))
+A.truthy(unload_failure_runtime:shutdown())
+
+-- Manager shutdown drops owner registrations without invoking extension
+-- unload hooks. A hook that would fail must not turn shutdown into a failure.
+local shutdown_extension_runtime = Runtime.new({
+  host = FakeHost.new(),
+  module_resolver = function()
+    return [[return {
+      init = function(core)
+        core.commands:register("shutdown.extension.command", function() return true end)
+      end,
+      unload = function() error("shutdown must not invoke extension unload") end,
+    }]]
+  end,
+})
+shutdown_extension_runtime:start()
+shutdown_extension_runtime:load_extension("shutdown-extension", {})
+A.truthy(shutdown_extension_runtime.commands:get("shutdown.extension.command"))
+A.truthy(shutdown_extension_runtime:shutdown())
+A.equal(shutdown_extension_runtime.plugins.plugins["shutdown-extension"], nil)
+A.equal(shutdown_extension_runtime.commands:get("shutdown.extension.command"), nil)
 
 A.truthy(resolver_runtime:shutdown())
 
