@@ -157,6 +157,50 @@ function Manager:load(name, source, config, options)
   return record
 end
 
+-- Load the entry module through the Backend-provided, extension-scoped
+-- resolver. The resolver must enforce source-root confinement and bounded
+-- reads; Runtime never resolves paths or touches the filesystem itself.
+function Manager:load_resolved(name, config, options)
+  options = options or {}
+  if self.closed then
+    errors.raise("SHUTDOWN", "plugin manager is closed")
+  end
+  if type(name) ~= "string" or name == "" then
+    errors.raise("INVALID_ARGUMENT", "plugin name is required")
+  end
+  if self.plugins[name] then
+    return self.plugins[name]
+  end
+  if type(self.module_resolver) ~= "function" then
+    errors.raise("UNSUPPORTED", "extension loading requires an approved module resolver", {
+      capability = "extension_module_resolver",
+    })
+  end
+
+  local ok, source, chunk_name = pcall(self.module_resolver, name, "init")
+  if not ok then
+    local failure = errors.normalize(source, "IO_ERROR", "resolve extension:" .. name)
+    error(failure, 0)
+  end
+  if type(source) ~= "string" then
+    errors.raise("NOT_FOUND", "extension entry module was not found", {
+      extension = name,
+      module = "init",
+    })
+  end
+  if chunk_name ~= nil and (type(chunk_name) ~= "string" or chunk_name == "") then
+    errors.raise("BAD_EXTENSION", "extension resolver returned an invalid chunk name", {
+      extension = name,
+    })
+  end
+
+  local load_options = {}
+  for key, value in pairs(options) do load_options[key] = value end
+  load_options.source = "resolver"
+  load_options.chunk_name = chunk_name or ("@" .. name .. "/init.lua")
+  return self:load(name, source, config, load_options)
+end
+
 function Manager:unload(name)
   local record = self.plugins[name]
   if not record then
