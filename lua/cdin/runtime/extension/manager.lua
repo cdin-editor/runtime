@@ -168,6 +168,12 @@ function Manager:load_resolved(name, config, options)
   if type(name) ~= "string" or name == "" then
     errors.raise("INVALID_ARGUMENT", "plugin name is required")
   end
+  -- Plugin names are namespace identifiers, never filesystem paths. Backend
+  -- still performs canonical path confinement after mapping this identifier.
+  if #name > 128 or not name:match("^[%w_][%w_.%-]*$")
+      or name:find("%.%.") or name:find("%.$") then
+    errors.raise("INVALID_ARGUMENT", "plugin name is not a valid namespace identifier")
+  end
   if self.plugins[name] then
     return self.plugins[name]
   end
