@@ -203,6 +203,7 @@ function Sandbox:load(plugin_name, source, core_facade, config, chunk_name)
   if module.init then
     local init_ok, init_error = pcall(module.init, core_facade, config)
     if not init_ok then
+      if errors.is(init_error) then error(init_error, 0) end
       errors.raise("BAD_EXTENSION", "extension init failed", {
         plugin = plugin_name,
         cause = tostring(init_error),
