@@ -240,6 +240,9 @@ local resolver_runtime = Runtime.new({
   end,
 })
 resolver_runtime:start()
+A.error_code(function()
+  resolver_runtime:load_extension("../outside", {})
+end, "INVALID_ARGUMENT")
 local resolved = resolver_runtime:load_extension("sample-resolved", { suffix = "!" })
 A.equal(resolved.name, "sample-resolved")
 A.equal(resolved.state, "active")
@@ -255,6 +258,11 @@ A.equal(listed_extensions[1].name, "sample-resolved")
 A.truthy(resolver_runtime:unload_extension("sample-resolved"))
 A.falsy(resolver_runtime.commands:get("resolved.greeting"))
 A.equal(#resolver_runtime:list_extensions(), 0)
+local module_path_escape = [[return { init = function() require("../outside") end }]]
+A.error_code(function()
+  resolver_runtime.plugins:load("module-escape", module_path_escape, {})
+end, "BAD_EXTENSION")
+A.falsy(resolver_runtime.commands:get("module-escape.command"))
 A.truthy(resolver_runtime:shutdown())
 
 local missing_resolver_runtime = Runtime.new({
