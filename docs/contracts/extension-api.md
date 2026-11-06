@@ -70,8 +70,11 @@ For each extension, Backend resolves the entry module name `init` inside that
 extension's namespace. Nested Lua `require("sub.module")` calls use the same
 resolver and the same owning extension name. The resolver returns the exact Lua
 source string and may return a virtual chunk name for diagnostics. It must
-return `nil` for a module that does not exist and must not expose absolute host
-paths in chunk names or error messages.
+return `nil` for a module that does not exist. For access, I/O or limit
+failures, it may raise a structured Runtime error in the `cdin.runtime` domain;
+Runtime preserves that code through nested module loading and extension
+initialization. Resolvers must not expose absolute host paths in chunk names or
+error messages.
 
 Trusted embedders may use the following Runtime methods:
 
