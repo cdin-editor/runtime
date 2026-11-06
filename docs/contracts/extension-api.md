@@ -59,6 +59,49 @@ The current manager exposes limited capabilities:
 The full legacy `system`, `themes`, package path and UI extension API has not
 been migrated. It must not be assumed available based on the old CDIN tree.
 
+## Resolver-backed lifecycle
+
+A Runtime embedded by a trusted application may be constructed with the optional
+`module_resolver(plugin_name, module_name)` callback. Backend owns this callback
+and its filesystem/catalog policy. Runtime never accepts a filesystem path and
+never reads extension files itself.
+
+For each extension, Backend resolves the entry module name `init` inside that
+extension's namespace. Nested Lua `require("sub.module")` calls use the same
+resolver and the same owning extension name. The resolver returns the exact Lua
+source string and may return a virtual chunk name for diagnostics. It must
+return `nil` for a module that does not exist and must not expose absolute host
+paths in chunk names or error messages.
+
+Trusted embedders may use the following Runtime methods:
+
+- `runtime:load_extension(name, config?, options?)` resolves and loads the
+  extension entry point, then returns only `{ name, state, source }`.
+- `runtime:unload_extension(name)` invokes the explicit unload hook and removes
+  the extension's owned registrations.
+- `runtime:list_extensions()` returns sorted metadata records; it does not
+  expose module tables, sandbox environments or source bytes.
+
+The extension name is a bounded namespace identifier, not a path. Nested
+module names are bounded dotted identifiers; slash, backslash, traversal and
+other path syntax are rejected before the resolver is called. Backend must
+still canonicalize and confine the resolved file/catalog entry to the
+requesting extension's root, reject symlink/reparse-point escape, bound source
+bytes, and return only on the Lua owner thread. Runtime-side name validation is
+defense in depth, not a substitute for Backend path confinement.
+
+These methods are trusted embedding APIs, **not Frontend Protocol commands**.
+A connected Driver must not gain the ability to load arbitrary local code by
+sending `request.command`. An application that exposes extension management
+to users must supply its own local administrative authorization boundary and
+must not route it through an ordinary remote editing session.
+
+When no resolver is supplied, resolver-backed loading fails closed with
+`UNSUPPORTED`. Explicit-source loading via the manager remains available to
+controlled embedding and deterministic tests; it must not be exposed to
+untrusted clients. The Lua sandbox remains defense in depth, not process
+isolation.
+
 ## Sandbox rules
 
 - No ambient `io`, `os`, `debug`, `package`, `dofile`, native loader or unrestricted
@@ -66,8 +109,9 @@ been migrated. It must not be assumed available based on the old CDIN tree.
 - Standard `math`, `string`, `table` and `utf8` libraries are read-only proxies.
 - Global reads/writes that are not explicitly approved fail with a structured
   extension error.
-- `require()` is disabled unless the host supplies a module resolver; a resolver
-  must scope module access to the requesting extension and prevent path escape.
+- `require()` is disabled unless the Backend supplies a module resolver; nested
+  names are dotted identifiers and resolution must remain inside the requesting
+  extension namespace. Backend must prevent canonical path/reparse-point escape.
 - Filesystem, process, clock and clipboard functionality is available only via
   separately documented capabilities when granted by Backend.
 
