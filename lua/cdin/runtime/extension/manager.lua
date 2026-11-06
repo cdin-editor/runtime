@@ -162,6 +162,12 @@ end
 -- reads; Runtime never resolves paths or touches the filesystem itself.
 function Manager:load_resolved(name, config, options)
   options = options or {}
+  if type(options) ~= "table" then
+    errors.raise("INVALID_ARGUMENT", "extension options must be a table")
+  end
+  if config ~= nil and type(config) ~= "table" then
+    errors.raise("INVALID_ARGUMENT", "extension config must be a table")
+  end
   if self.closed then
     errors.raise("SHUTDOWN", "plugin manager is closed")
   end
