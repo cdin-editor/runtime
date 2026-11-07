@@ -19,6 +19,8 @@ local Themes = require("cdin.runtime.presentation.theme.registry")
 local Syntax = require("cdin.runtime.presentation.syntax.registry")
 local Highlighter = require("cdin.runtime.presentation.syntax.highlighter")
 local Sandbox = require("cdin.runtime.extension.sandbox")
+local ExtensionManager = require("cdin.runtime.extension.manager")
+local Log = require("cdin.runtime.core.log")
 local Strict = require("cdin.runtime.core.strict")
 
 local bus = EventBus.new(); local hits = 0
@@ -193,6 +195,58 @@ return {
 local capability_ok, capability_reason = capability_probe.probe()
 A.truthy(capability_ok, capability_reason)
 
+-- RT-013 | Extension failure isolation and owner-scoped rollback.
+local extension_commands = Commands.new()
+local extension_keymap = Keymap.new()
+local extension_events = EventBus.new()
+local extension_manager = ExtensionManager.new({
+  commands = extension_commands,
+  keymap = extension_keymap,
+  events = extension_events,
+  logger = Log.null(),
+})
+A.error_code(function()
+  extension_manager:load("failed-init", [[
+    return {
+      init = function(core)
+        core.commands:register("extension.failed.init", function() return true end)
+        core.keymap:bind("ctrl+alt+i", "extension.failed.init")
+        core.events:on("extension_tick", function() end)
+        error("intentional init failure")
+      end,
+      unload = function() error("unload must not run after failed init") end,
+    }
+  ]], {}, {})
+end, "BAD_EXTENSION")
+A.equal(extension_manager.plugins["failed-init"], nil)
+A.equal(extension_commands:get("extension.failed.init"), nil)
+A.equal(#extension_keymap:list(), 0)
+A.equal(extension_events.listeners.extension_tick, nil)
+
+extension_manager:load("runtime-failure", [[
+  return {
+    init = function(core)
+      core.commands:register("extension.runtime.fail", function() error("intentional command failure") end)
+      core.commands:register("extension.runtime.ok", function() return "still alive" end)
+      core.events:on("extension_tick", function() error("intentional event failure") end)
+    end,
+    unload = function() error("intentional unload failure") end,
+  }
+]], {}, {})
+A.error_code(function()
+  extension_commands:execute("extension.runtime.fail", {}, {})
+end, "INTERNAL")
+local command_ok, command_result = extension_commands:execute("extension.runtime.ok", {}, {})
+A.truthy(command_ok); A.equal(command_result, "still alive")
+local extension_event_failures = extension_events:emit("extension_tick", {})
+A.equal(#extension_event_failures, 1)
+A.equal(extension_manager.plugins["runtime-failure"].state, "active")
+A.error_code(function() extension_manager:unload("runtime-failure") end, "BAD_EXTENSION")
+A.equal(extension_manager.plugins["runtime-failure"], nil)
+A.equal(extension_commands:get("extension.runtime.fail"), nil)
+A.equal(extension_commands:get("extension.runtime.ok"), nil)
+A.equal(#extension_keymap:list(), 0)
+A.equal(extension_events.listeners.extension_tick, nil)
 
 require("unit.log_tests")
 
