@@ -118,6 +118,17 @@ local function remove_view_from(node, view_id)
   return node, false
 end
 
+local function find_split_by_id(node, split_id)
+  if not node or node.kind ~= "split" then
+    return nil
+  end
+  if node.id == split_id then
+    return node
+  end
+  return find_split_by_id(node.first, split_id)
+    or find_split_by_id(node.second, split_id)
+end
+
 local function first_leaf(node)
   if not node then
     return nil
@@ -203,6 +214,28 @@ function PaneTree:split(target_view_id, new_view_id, axis, ratio)
 
   self.root = replace_node(self.root, target, split_node)
   self.active_leaf = next_leaf.id
+  return true
+end
+
+function PaneTree:set_split_ratio(split_id, ratio)
+  if type(split_id) ~= "string" or split_id == "" then
+    errors.raise("INVALID_ARGUMENT", "split id is required")
+  end
+  if type(ratio) ~= "number" or ratio ~= ratio
+      or ratio <= 0.1 or ratio >= 0.9 then
+    errors.raise("INVALID_ARGUMENT", "split ratio must be between 0.1 and 0.9")
+  end
+
+  local target = find_split_by_id(self.root, split_id)
+  if not target then
+    errors.raise("NOT_FOUND", "split node does not exist", {
+      split_id = split_id,
+    })
+  end
+
+  -- Mutate only the selected semantic split. Children, IDs and active focus
+  -- remain stable; pixel geometry is recomputed by each Frontend.
+  target.ratio = ratio
   return true
 end
 
