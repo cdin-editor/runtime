@@ -34,7 +34,7 @@ The separation is intentional: Runtime does not draw the window, perform pixel-l
 
 ## Current status
 
-This repository contains the Runtime policy layer and its Lua-side Backend boundary (`0.4.1`). It targets the stable Host API `1.0.0` and the shared Frontend Protocol `1.0.0`, including version-pinned line-window reads and owner-thread Frontend event dispatch. It is **not yet a complete, runnable CDIN editor or a Runtime 1.0.0 release**: live Lua 5.4 + Kernel + Backend integration, legacy extension parity and a reviewed stable Host API are still required.
+This repository contains the Runtime policy layer and its Lua-side Backend boundary. The current package candidate is `1.0.0-rc.1`; the Runtime Host API `1.0.0` and Frontend Protocol `1.0.0` are separate stable contracts. Runtime remains a release candidate, not a stable `1.0.0` product release: live Lua 5.4 + Kernel + Backend integration, native lifecycle/error conformance and the remaining extension/migration gates are still required. See [current status](docs/status.md) for the verification boundary.
 
 The [CDIN specification](https://github.com/cdin-editor/spec) is the source of truth for cross-project contracts. This README describes the current state of this repository; it does not override the specification.
 
@@ -114,7 +114,8 @@ This example creates an in-memory document. It does not open a real file or disp
 | [Errors and lifecycle](docs/contracts/errors-and-lifecycle.md) | Error handling, startup and shutdown. |
 | [Build and test](docs/development/build-and-test.md) | Local development and test commands. |
 | [Changelog](CHANGELOG.md) | Changes recorded for each version. |
-| [Spec traceability](docs/spec-traceability.md) | Requirement-to-code mapping, evidence and 1.0.0 release gates. |
+| [Current status](docs/status.md) | Verified implementation, incomplete integration and release blockers. |
+| [Runtime component specification](https://github.com/cdin-editor/spec/blob/main/docs/components/runtime.md) | Normative Runtime requirements and version ownership. |
 
 ## CDIN ecosystem
 

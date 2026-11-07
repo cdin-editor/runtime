@@ -28,11 +28,10 @@ theme/style/syntax registries, extension sandboxing, and Kernel-logger routing.
   Backend and full CDIN build.
 - Live native lifecycle/error-mapping conformance and approved Runtime/extension API surface.
 
+The current Release Metadata still needs the Extension Contract provider declaration required by RT-012. Its canonical Registry identity and SemVer representation are pending [Spec issue #16](https://github.com/cdin-editor/spec/issues/16), tracked for Runtime in [issue #7](https://github.com/cdin-editor/runtime/issues/7). Do not assign a guessed `contract_id` or edit the published RC metadata in place.
+
 The Runtime Host API contract is frozen at `1.0.0`; release readiness still depends on native integration and the explicitly scoped extension/migration gates. The Frontend Protocol is the
 stable `1.0.0` shared wire contract. These are independent contracts and must
 not be conflated with the Runtime package version.
 
-See [Spec traceability](spec-traceability.md) for requirement-by-requirement
-implementation evidence and exact release blockers. The Specification remains
-authoritative; `PROPOSED`, `OPEN` and `DEFERRED` items are not made accepted by
-adding code here.
+See the [Runtime component specification](https://github.com/cdin-editor/spec/blob/main/docs/components/runtime.md) for normative requirements and [current implementation status](status.md) for the evidence boundary. The Specification remains authoritative; `PROPOSED`, `OPEN` and `DEFERRED` items are not made accepted by adding code here.

@@ -13,6 +13,8 @@
 
 ### Security
 
+- Align the README and Registry integration guide with package candidate `1.0.0-rc.1` and the frozen Host API `1.0.0`; explicitly track the missing RT-012 Extension Contract provider declaration without inventing a Registry contract identity.
+
 - Extension lifecycle methods are not exposed as Frontend Protocol commands.
   Loading remains disabled when no approved Backend resolver is supplied.
 - Runtime rejects path-like extension and nested module names before they reach
