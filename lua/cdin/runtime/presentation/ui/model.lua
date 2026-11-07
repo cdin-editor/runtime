@@ -69,6 +69,12 @@ function Model:add_view(view, options)
   return true
 end
 
+function Model:set_split_ratio(split_id, ratio)
+  self.pane_tree:set_split_ratio(split_id, ratio)
+  self:_touch()
+  return self.revision
+end
+
 function Model:remove_view(view_id)
   if not self.views[view_id] then
     return false
