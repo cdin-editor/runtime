@@ -169,6 +169,18 @@ end, "INVALID_ARGUMENT")
 A.equal(model.views["view-b"], nil)
 A.equal(#model.pane_tree:list_views(), 1)
 
+-- A semantic split resize advances the UI snapshot revision exactly once.
+local ratio_model = UIModel.new()
+ratio_model:add_view(View.new({ id = "ratio-a", document_id = "ratio-doc" }))
+ratio_model:add_view(View.new({ id = "ratio-b", document_id = "ratio-doc" }), {
+  split_with = "ratio-a", axis = "horizontal", ratio = 0.5,
+})
+local ratio_root = ratio_model.pane_tree:snapshot().root
+local prior_ratio_revision = ratio_model.revision
+A.equal(ratio_model:set_split_ratio(ratio_root.id, 0.65), prior_ratio_revision + 1)
+A.equal(ratio_model.revision, prior_ratio_revision + 1)
+A.equal(ratio_model:snapshot().layout.root.ratio, 0.65)
+
 local styles = Styles.new(); styles:define("text.default")
 local themes = Themes.new(styles); themes:register("default", { ["text.default"] = { foreground = "#ffffff" } })
 A.equal(themes:activate("default").name, "default")
