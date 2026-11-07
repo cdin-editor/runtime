@@ -134,8 +134,29 @@ local forbidden_read = assert(load("return missing_value", "strict-read", "t", s
 A.falsy(pcall(forbidden_read))
 local pane_tree = PaneTree.new(); pane_tree:add_view("v1"); pane_tree:add_view("v2")
 A.equal(#pane_tree:list_views(), 2); pane_tree:focus("v1"); pane_tree:split("v1", "v3", "horizontal", 0.6)
-A.equal(#pane_tree:list_views(), 3); A.truthy(pane_tree:remove_view("v3")); A.equal(#pane_tree:list_views(), 2)
-A.error_code(function() pane_tree:split("v1", "v4", "bad", 0.5) end, "INVALID_ARGUMENT")
+A.equal(#pane_tree:list_views(), 3)
+local outer_split = pane_tree:snapshot().root
+A.equal(outer_split.ratio, 0.6)
+A.truthy(pane_tree:set_split_ratio(outer_split.id, 0.7))
+A.equal(pane_tree:snapshot().root.ratio, 0.7)
+A.error_code(function() pane_tree:set_split_ratio(outer_split.id, 0.1) end, "INVALID_ARGUMENT")
+A.error_code(function() pane_tree:set_split_ratio(outer_split.id, 0.9) end, "INVALID_ARGUMENT")
+A.error_code(function() pane_tree:set_split_ratio(outer_split.id, 0 / 0) end, "INVALID_ARGUMENT")
+A.error_code(function() pane_tree:set_split_ratio("missing-split", 0.5) end, "NOT_FOUND")
+A.error_code(function() pane_tree:set_split_ratio("", 0.5) end, "INVALID_ARGUMENT")
+A.equal(pane_tree:snapshot().root.ratio, 0.7) -- rejected mutations are atomic
+
+-- Nested updates identify the selected split by its stable semantic ID.
+pane_tree:split("v1", "v4", "vertical", 0.4)
+local nested = pane_tree:snapshot().root.first
+A.equal(nested.kind, "split")
+A.truthy(pane_tree:set_split_ratio(nested.id, 0.55))
+local nested_snapshot = pane_tree:snapshot().root
+A.equal(nested_snapshot.ratio, 0.7)
+A.equal(nested_snapshot.first.ratio, 0.55)
+A.equal(#pane_tree:list_views(), 4)
+A.truthy(pane_tree:remove_view("v3")); A.equal(#pane_tree:list_views(), 3)
+A.error_code(function() pane_tree:split("v1", "v5", "bad", 0.5) end, "INVALID_ARGUMENT")
 
 local model = UIModel.new()
 model:add_view(View.new({ id = "view-a", document_id = "doc-a" }))
