@@ -1,8 +1,8 @@
 -- Runtime version resolution.
 --
--- Normal source checkouts derive the version from Git tags. Release archives
--- receive a tiny generated release_metadata.lua module during packaging because
--- source archives intentionally do not include the .git directory.
+-- Normal source checkouts derive the version from Git tags. Registry-collected
+-- source snapshots and release archives also carry release_metadata.lua because
+-- they may not include usable .git history and must report their package version.
 
 local function trim(value)
   return (value:gsub("^%s+", ""):gsub("%s+$", ""))
@@ -165,8 +165,8 @@ local function resolve_runtime_version()
     return detected
   end
 
-  -- Release archives have no .git metadata, so the release workflow generates
-  -- this module from the tag. It is deliberately not committed to the repo.
+  -- Registry-collected source snapshots and release archives may not contain
+  -- usable .git metadata; their embedded module binds the immutable package version.
   local ok, packaged = pcall(require, "cdin.runtime.core.release_metadata")
   if ok and type(packaged) == "string" and packaged ~= "" then
     return packaged
