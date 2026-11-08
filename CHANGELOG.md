@@ -15,7 +15,6 @@
 - This is an integration candidate, not a formal `v1.0.0-rc.2` tag or
   GitHub Release. Live product-version verification remains an exit gate.
 
-
 ### Release metadata and verification
 
 - Confirm the Registry source snapshot for package `1.0.0-rc.1` is 41 commits
