@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0.0",
+  "component_id": "runtime",
+  "variant": "default",
+  "version": "1.0.0-rc.2",
+  "status": "active",
+  "source_units": [
+    {
+      "source_unit_id": "runtime-source",
+      "repository_uri": "https://github.com/cdin-editor/runtime",
+      "revision": "49f3ab78fc115cd453294de561790ca9881c31a2"
+    }
+  ],
+  "dependencies": [],
+  "contracts": {
+    "provides": [
+      {
+        "contract_id": "org.cdin.runtime-extension-contract",
+        "version": "1.0.0"
+      }
+    ],
+    "requires": [
+      {
+        "contract_id": "org.cdin.runtime-host-api",
+        "version_constraint": ">=1.0.0 <2.0.0"
+      }
+    ]
+  }
+}
