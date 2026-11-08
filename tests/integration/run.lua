@@ -91,6 +91,8 @@ local inner_first_id = before_tree.second.first.id
 local inner_second_id = before_tree.second.second.id
 local retained_focus = runtime.ui.focus
 local before_revision = runtime.ui.revision
+A.equal(runtime:supports_protocol_capability("pane-splitter-resize/1"), true)
+A.equal(runtime:supports_protocol_capability("unknown-extension/1"), false)
 
 local resize_result = runtime:handle_frontend_event({
   type = "pane.set_split_ratio", split_id = inner_id, ratio = 0.62,
