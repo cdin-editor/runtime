@@ -71,6 +71,72 @@ runtime:handle_frontend_event({
   type = "input.mouse", action = "press", button = "left", modifiers = {}, target = event_view.id,
   position = { x = 2, y = 1 },
 })
+
+-- Semantic PaneTree resize is dispatched on the Runtime owner thread. Nested
+-- split identity, children, focus and exact-once revision semantics are stable.
+local outer_split_view = runtime:create_view(event_document.id, {
+  split_with = event_view.id, axis = "vertical", ratio = 0.5,
+})
+local inner_split_view = runtime:create_view(event_document.id, {
+  split_with = outer_split_view.id, axis = "horizontal", ratio = 0.4,
+})
+local before_tree = runtime.ui.pane_tree:snapshot().root
+A.equal(before_tree.kind, "split")
+A.equal(before_tree.second.kind, "split")
+local outer_id = before_tree.id
+local inner_id = before_tree.second.id
+local outer_first_id = before_tree.first.id
+local outer_second_id = before_tree.second.id
+local inner_first_id = before_tree.second.first.id
+local inner_second_id = before_tree.second.second.id
+local retained_focus = runtime.ui.focus
+local before_revision = runtime.ui.revision
+
+local resize_result = runtime:handle_frontend_event({
+  type = "pane.set_split_ratio", split_id = inner_id, ratio = 0.62,
+})
+A.equal(resize_result.status, "applied")
+A.equal(resize_result.split_id, inner_id)
+A.equal(resize_result.ratio, 0.62)
+A.equal(resize_result.revision, before_revision + 1)
+A.equal(runtime.ui.revision, before_revision + 1)
+A.equal(runtime.ui.focus, retained_focus)
+
+local after_tree = runtime.ui.pane_tree:snapshot().root
+A.equal(after_tree.id, outer_id)
+A.equal(after_tree.ratio, 0.5)
+A.equal(after_tree.first.id, outer_first_id)
+A.equal(after_tree.second.id, outer_second_id)
+A.equal(after_tree.second.id, inner_id)
+A.equal(after_tree.second.ratio, 0.62)
+A.equal(after_tree.second.first.id, inner_first_id)
+A.equal(after_tree.second.second.id, inner_second_id)
+
+local rejected_revision = runtime.ui.revision
+A.error_code(function()
+  runtime:handle_frontend_event({
+    type = "pane.set_split_ratio", split_id = "missing-split", ratio = 0.5,
+  })
+end, "NOT_FOUND")
+A.error_code(function()
+  runtime:handle_frontend_event({
+    type = "pane.set_split_ratio", split_id = inner_first_id, ratio = 0.5,
+  })
+end, "NOT_FOUND")
+A.error_code(function()
+  runtime:handle_frontend_event({
+    type = "pane.set_split_ratio", split_id = inner_id, ratio = 0.1,
+  })
+end, "INVALID_ARGUMENT")
+A.error_code(function()
+  runtime:handle_frontend_event({
+    type = "pane.set_split_ratio", split_id = inner_id, ratio = 0.9,
+  })
+end, "INVALID_ARGUMENT")
+A.equal(runtime.ui.revision, rejected_revision)
+A.equal(runtime.ui.pane_tree:snapshot().root.second.ratio, 0.62)
+A.equal(runtime.ui.focus, retained_focus)
+
 runtime:close_document(event_document.id)
 
 local search = document:search("Z", { mode = "literal" }); A.equal(search.count, 1)
