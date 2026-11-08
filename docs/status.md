@@ -1,6 +1,6 @@
 # Current state
 
-CDIN Runtime `1.0.0-rc.1` is the Lua 5.4 policy-layer release candidate. It contains
+Runtime `1.0.0-rc.2` is the next Registry integration candidate for the Lua 5.4 policy layer. RC1 remains immutable; the Catalog still selects RC1 until the matching Registry update and CDIN Manifest verification are complete. This candidate carries the RT-012 Extension Contract provider declaration. It contains
 commands and key-binding registries, configuration, workspace context,
 Host-backed document clients, logical views and selections, semantic UI model,
 theme/style/syntax registries, extension sandboxing, and Kernel-logger routing.
@@ -10,6 +10,11 @@ theme/style/syntax registries, extension sandboxing, and Kernel-logger routing.
 - Lua 5.4.7 unit tests: 137 assertions passed.
 - Lua 5.4.7 simulated-Host integration tests: 131 assertions passed after the
   Protocol compatibility regression test was added.
+- The RC2 candidate embeds package version `1.0.0-rc.2` for source snapshots
+  without usable Git metadata and declares
+  `org.cdin.runtime-extension-contract` version `1.0.0` in its new immutable
+  Release Metadata document. The Catalog and CDIN exact-manifest check still
+  need to move from RC1 to RC2 before this candidate is considered integrated.
 - Static architecture boundary checks: passed.
 - Registry-collected Runtime source pin
   `d2acb6f174edf127c3bf59e8e5d4aedcbef0d490` reports the selected package
@@ -35,14 +40,14 @@ theme/style/syntax registries, extension sandboxing, and Kernel-logger routing.
   Backend and full CDIN build.
 - Live native lifecycle/error-mapping conformance and approved Runtime/extension API surface.
 
-The published RC1 Release Metadata still has an empty `contracts.provides` array,
-so it does not yet satisfy the Extension Contract provider portion of RT-012.
+The published RC1 Release Metadata remains immutable and still has an empty `contracts.provides` array.
+The new RC2 candidate adds the provider in a separate immutable metadata document.
 [Spec issue #16](https://github.com/cdin-editor/spec/issues/16) is now resolved
 by [Spec PR #27](https://github.com/cdin-editor/spec/pull/27): the canonical ID
 is `org.cdin.runtime-extension-contract`, and the existing API label `1.0`
 maps to Registry SemVer `1.0.0`. The already-published RC1 metadata is
-immutable and MUST NOT be edited in place; the provider declaration belongs
-in the next immutable Runtime candidate metadata document. This remains
+immutable and MUST NOT be edited in place. The RC2 candidate metadata is now
+prepared; its Catalog selection and exact CDIN version verification remain
 tracked by [Runtime issue #7](https://github.com/cdin-editor/runtime/issues/7).
 
 The Runtime Host API contract is frozen at `1.0.0`; release readiness still depends on native integration and the explicitly scoped extension/migration gates. The Frontend Protocol is the

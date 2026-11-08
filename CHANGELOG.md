@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### Runtime RC2 Registry integration candidate
+
+- Add a separate immutable Release Metadata candidate
+  `runtime-1.0.0-rc.2.json` that provides
+  `org.cdin.runtime-extension-contract` version `1.0.0`, as defined by the
+  merged Spec decision in PR #27.
+- Update the tracked Registry/archive fallback module to report
+  `1.0.0-rc.2`. Preserve the original RC1 metadata document, digest and
+  source pin; the Catalog and CDIN Manifest still need the coordinated RC2
+  update before this candidate is selected.
+- This is an integration candidate, not a formal `v1.0.0-rc.2` tag or
+  GitHub Release. Live product-version verification remains an exit gate.
+
+
 ### Release metadata and verification
 
 - Confirm the Registry source snapshot for package `1.0.0-rc.1` is 41 commits
