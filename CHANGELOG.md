@@ -16,15 +16,9 @@
 - This is an integration candidate, not a formal `v1.0.0-rc.2` tag or
   GitHub Release. Live product-version verification remains an exit gate.
 
-### Added
-
-- Add semantic `PaneTree:set_split_ratio` and `Model:set_split_ratio` operations with bounded ratios, stable split IDs and nested-split coverage.
-- Publish successful split-ratio updates as one UI model revision while preserving sibling identity, order and focus; reject invalid targets and ratios without changing the model revision.
-
 ### Integration boundary
 
 - These Runtime model primitives do not implement pointer geometry, drag preview or Frontend input. The owner-thread protocol dispatch and atomic Backend publication remain separate integration gates.
-
 
 ### Release metadata and verification
 
@@ -40,6 +34,8 @@
 
 ### Added
 
+- Add semantic `PaneTree:set_split_ratio` and `Model:set_split_ratio` operations with bounded ratios, stable split IDs and nested-split coverage.
+- Publish successful split-ratio updates as one UI model revision while preserving sibling identity, order and focus; reject invalid targets and ratios without changing the model revision.
 - Resolver-backed extension loading through the trusted Runtime embedding API:
   `load_extension`, `unload_extension` and `list_extensions`.
 - Entry modules are resolved as `init` within the extension namespace; nested
