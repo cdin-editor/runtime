@@ -572,6 +572,14 @@ function Runtime:handle_frontend_event(event)
   })
 end
 
+-- Optional protocol extensions are advertised only when this exact
+-- Runtime owner-thread operation is available. Older Runtime builds safely
+-- remain on the Protocol 1.0.0 base capability set.
+function Runtime:supports_protocol_capability(name)
+  self:_assert_running()
+  return name == "pane-splitter-resize/1"
+end
+
 function Runtime:publish_ui()
   self:_assert_running()
   return self:_publish_ui()
