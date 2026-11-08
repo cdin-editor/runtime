@@ -540,6 +540,17 @@ function Runtime:handle_frontend_event(event)
     view:set_selection(anchor, caret)
     self:_publish_ui()
     return { status = "position-set", version = document.version }
+  elseif event_type == "pane.set_split_ratio" then
+    -- Backend has already enforced the negotiated capability, Driver lease and
+    -- current layout revision. Runtime owns only the semantic mutation here.
+    local revision = self.ui:set_split_ratio(event.split_id, event.ratio)
+    self:_publish_ui()
+    return {
+      status = "applied",
+      split_id = event.split_id,
+      ratio = event.ratio,
+      revision = revision,
+    }
   elseif event_type == "request.command" then
     local ok, result = self:dispatch(event.name, event.arguments or {})
     if not ok then
