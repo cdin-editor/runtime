@@ -35,7 +35,15 @@ theme/style/syntax registries, extension sandboxing, and Kernel-logger routing.
   Backend and full CDIN build.
 - Live native lifecycle/error-mapping conformance and approved Runtime/extension API surface.
 
-The published RC1 Release Metadata still has an empty `contracts.provides` array, so it does not yet satisfy the Extension Contract provider portion of RT-012. [Spec issue #16](https://github.com/cdin-editor/spec/issues/16) is now resolved by [Spec PR #27](https://github.com/cdin-editor/spec/pull/27): the canonical ID is `org.cdin.runtime-extension-contract`, and the existing API label `1.0` maps to Registry SemVer `1.0.0`. The already-published RC1 metadata is immutable and MUST NOT be edited in place; the provider declaration belongs in the next immutable Runtime candidate metadata document. This remains tracked by [Runtime issue #7](https://github.com/cdin-editor/runtime/issues/7).
+The published RC1 Release Metadata still has an empty `contracts.provides` array,
+so it does not yet satisfy the Extension Contract provider portion of RT-012.
+[Spec issue #16](https://github.com/cdin-editor/spec/issues/16) is now resolved
+by [Spec PR #27](https://github.com/cdin-editor/spec/pull/27): the canonical ID
+is `org.cdin.runtime-extension-contract`, and the existing API label `1.0`
+maps to Registry SemVer `1.0.0`. The already-published RC1 metadata is
+immutable and MUST NOT be edited in place; the provider declaration belongs
+in the next immutable Runtime candidate metadata document. This remains
+tracked by [Runtime issue #7](https://github.com/cdin-editor/runtime/issues/7).
 
 The Runtime Host API contract is frozen at `1.0.0`; release readiness still depends on native integration and the explicitly scoped extension/migration gates. The Frontend Protocol is the
 stable `1.0.0` shared wire contract. These are independent contracts and must
