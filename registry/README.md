@@ -19,11 +19,16 @@ checkouts continue to derive their development identity from `git describe`.
 
 ## Publication and immutability
 
-The existing Registry Catalog still selects RC1 until a Registry Catalog
-update adds the new metadata URI and exact SHA-256 digest. Do not edit
-`runtime-1.0.0-rc.1.json` or its source pin in place. The RC2 document has its
-own package version and immutable source revision; the RC1 document remains
-available for older consumers.
+The Catalog snapshot consumed by CDIN is now updated at
+[Registry commit `2a611eca830c0f235dacab04a1d006a8fd46e586`](https://github.com/cdin-editor/registry/commit/2a611eca830c0f235dacab04a1d006a8fd46e586).
+It contains the RC2 metadata URI and exact SHA-256 digest
+`b572ab0a390599d95815a70af97899ec17d003d3c47ee78584920db9ee387412`.
+CDIN's Composition Root branch now pins that Catalog snapshot and selects the
+RC2 candidate through Backend's existing Runtime dependency range. The
+exact-head CDIN TUI/GUI-SDL product matrix and runtime-vs-Manifest check are
+being verified in [CDIN run 42447891569](https://github.com/cdin-editor/cdin/actions/runs/42447891569).
+Do not edit `runtime-1.0.0-rc.1.json` or its source pin in place; the RC1
+document remains available for older consumers.
 
 This is an active integration candidate, not a formal
 `v1.0.0-rc.2` Git tag or GitHub Release. The release workflow remains
