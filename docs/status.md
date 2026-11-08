@@ -11,7 +11,12 @@ theme/style/syntax registries, extension sandboxing, and Kernel-logger routing.
 - Lua 5.4.7 simulated-Host integration tests: 131 assertions passed after the
   Protocol compatibility regression test was added.
 - Static architecture boundary checks: passed.
-- Registry-collected Runtime source pin `d2acb6f174edf127c3bf59e8e5d4aedcbef0d490` reports the selected package version `1.0.0-rc.1` in the real CDIN lifecycle check. The log records `runtime started host_api=1.0.0 version=1.0.0-rc.1 kernel_abi=1.1.0` in [CDIN workflow run 42407924719](https://github.com/cdin-editor/cdin/actions/runs/42407924719); its Linux/macOS/Windows TUI/GUI-SDL matrix and full-stack sanitizer job passed.
+- Registry-collected Runtime source pin
+  `d2acb6f174edf127c3bf59e8e5d4aedcbef0d490` reports the selected package
+  version `1.0.0-rc.1` in the real CDIN lifecycle check. The log records
+  `runtime started host_api=1.0.0 version=1.0.0-rc.1 kernel_abi=1.1.0` in
+  [CDIN workflow run 42407924719](https://github.com/cdin-editor/cdin/actions/runs/42407924719).
+  Its Linux/macOS/Windows TUI/GUI-SDL matrix and full-stack sanitizer job passed.
 - The tagged `v1.0.0-rc.1` source archive was built, tested, checksum-verified and published successfully by [Runtime release workflow 41737747346](https://github.com/cdin-editor/runtime/actions/runs/41737747346). Its artifact-test and assembled-asset verification steps passed.
 - Frontend Protocol negotiation follows Spec `1.x` minor compatibility;
   Runtime Host API `1.0.0` is stable and uses same-major / minimum-minor compatibility.
