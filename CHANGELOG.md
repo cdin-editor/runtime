@@ -9,9 +9,10 @@
   `org.cdin.runtime-extension-contract` version `1.0.0`, as defined by the
   merged Spec decision in PR #27.
 - Update the tracked Registry/archive fallback module to report
-  `1.0.0-rc.2`. Preserve the original RC1 metadata document, digest and
-  source pin; the Catalog and CDIN Manifest still need the coordinated RC2
-  update before this candidate is selected.
+  `1.0.0-rc.2`. Preserve the original RC1 metadata document, digest and source pin. The RC2
+  metadata is now included in Registry Catalog commit
+  `2a611eca830c0f235dacab04a1d006a8fd46e586`; CDIN pins that Catalog and its
+  exact version check is running.
 - This is an integration candidate, not a formal `v1.0.0-rc.2` tag or
   GitHub Release. Live product-version verification remains an exit gate.
 

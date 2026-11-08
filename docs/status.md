@@ -1,6 +1,6 @@
 # Current state
 
-Runtime `1.0.0-rc.2` is the next Registry integration candidate for the Lua 5.4 policy layer. RC1 remains immutable; the Catalog still selects RC1 until the matching Registry update and CDIN Manifest verification are complete. This candidate carries the RT-012 Extension Contract provider declaration. It contains
+Runtime `1.0.0-rc.2` is the current Registry integration candidate for the Lua 5.4 policy layer. RC1 remains immutable. Registry Catalog commit `2a611eca830c0f235dacab04a1d006a8fd46e586` now includes the RC2 metadata and exact digest, and CDIN's updated Composition Root branch pins that Catalog commit; the exact RC2 Manifest/runtime verification is pending CDIN run 42447891569. This candidate carries the RT-012 Extension Contract provider declaration. It contains
 commands and key-binding registries, configuration, workspace context,
 Host-backed document clients, logical views and selections, semantic UI model,
 theme/style/syntax registries, extension sandboxing, and Kernel-logger routing.
@@ -46,9 +46,11 @@ The new RC2 candidate adds the provider in a separate immutable metadata documen
 by [Spec PR #27](https://github.com/cdin-editor/spec/pull/27): the canonical ID
 is `org.cdin.runtime-extension-contract`, and the existing API label `1.0`
 maps to Registry SemVer `1.0.0`. The already-published RC1 metadata is
-immutable and MUST NOT be edited in place. The RC2 candidate metadata is now
-prepared; its Catalog selection and exact CDIN version verification remain
-tracked by [Runtime issue #7](https://github.com/cdin-editor/runtime/issues/7).
+immutable and MUST NOT be edited in place. The Catalog now contains
+the separate RC2 metadata identity. CDIN pins that Catalog snapshot; the exact
+product-version verification is tracked by
+[Runtime issue #7](https://github.com/cdin-editor/runtime/issues/7) and is
+running in [CDIN CI 42447891569](https://github.com/cdin-editor/cdin/actions/runs/42447891569).
 
 The Runtime Host API contract is frozen at `1.0.0`; release readiness still depends on native integration and the explicitly scoped extension/migration gates. The Frontend Protocol is the
 stable `1.0.0` shared wire contract. These are independent contracts and must
