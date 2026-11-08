@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Release metadata and verification
+
+- Confirm the Registry source snapshot for package `1.0.0-rc.1` is 41 commits
+  beyond the original release tag but retains the embedded RC1 package version.
+  The exact CDIN manifest/runtime version check and tagged source-archive
+  verification passed (see [docs/status.md](docs/status.md)).
+- Resolve the RT-012 Extension Contract identity in Spec: the provider ID is
+  `org.cdin.runtime-extension-contract`, and API label `1.0` maps to Registry
+  SemVer `1.0.0`. The published RC1 metadata remains immutable and does not
+  yet declare that provider; the declaration belongs in a new candidate
+  metadata identity, not an in-place RC1 edit.
+
 ### Added
 
 - Resolver-backed extension loading through the trusted Runtime embedding API:
