@@ -16,9 +16,14 @@
 - This is an integration candidate, not a formal `v1.0.0-rc.2` tag or
   GitHub Release. Live product-version verification remains an exit gate.
 
+### IME composition context
+
+- Add owner-thread `begin_ime_composition`, `validate_ime_composition` and `commit_ime_composition` operations. They bind final text to the captured visible/focused view, exact document version and Runtime-owned selection; transient preedit is not stored or published by Runtime.
+- Validate that selection/focus/view/document changes reject a commit without mutating document bytes; successful non-empty commit follows the normal document replacement/undo path exactly once.
+
 ### Integration boundary
 
-- These Runtime model primitives do not implement pointer geometry, drag preview or Frontend input. The owner-thread protocol dispatch and atomic Backend publication remain separate integration gates.
+- These Runtime model primitives do not implement pointer geometry or drag preview. Backend still owns the per-client IME ID/state, queue-full retry, forced cancellation and exactly-once wire admission; Frontend owns native preedit rendering and conversion. Product advertisement remains gated on full component and CDIN conformance.
 
 ### Release metadata and verification
 

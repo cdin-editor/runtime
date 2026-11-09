@@ -437,6 +437,109 @@ function Runtime:_emit_frontend_event(name, payload)
   return #failures == 0
 end
 
+-- Capture/revalidate the authoritative target for the optional IME extension.
+-- The Backend owns the active composition ID and preedit lifecycle; Runtime
+-- receives only this immutable context and the final committed UTF-8 bytes.
+function Runtime:begin_ime_composition(event)
+  self:_assert_running()
+  if type(event) ~= "table" or type(event.view_id) ~= "string" or event.view_id == ""
+      or type(event.document_version) ~= "number" or event.document_version < 0
+      or event.document_version % 1 ~= 0 then
+    errors.raise("INVALID_ARGUMENT", "IME start requires a view ID and document version")
+  end
+  local view = self.ui.views[event.view_id]
+  if not view then
+    errors.raise("NOT_FOUND", "IME target view does not exist", { view_id = event.view_id })
+  end
+  if self.ui.focus ~= event.view_id or not view.focused or not view.visible then
+    errors.raise("INVALID_STATE", "IME composition requires the focused visible view", {
+      view_id = event.view_id,
+    })
+  end
+  local document = self.documents:get(view.document_id)
+  local changed = document:refresh_metadata()
+  if changed then
+    self:_apply_document_edits(document.id, nil, nil, document.length)
+    self:_publish_ui()
+    errors.raise("STALE_VERSION", "document changed before IME composition started", {
+      expected = event.document_version, current = document.version,
+    })
+  end
+  if document.version ~= event.document_version then
+    errors.raise("STALE_VERSION", "IME start uses a stale document version", {
+      expected = event.document_version, current = document.version,
+    })
+  end
+  return {
+    view_id = view.id,
+    document_version = document.version,
+    anchor = view.selection.anchor,
+    caret = view.selection.caret,
+  }
+end
+
+function Runtime:validate_ime_composition(context)
+  self:_assert_running()
+  if type(context) ~= "table" or type(context.view_id) ~= "string" or context.view_id == ""
+      or type(context.document_version) ~= "number" or context.document_version < 0
+      or context.document_version % 1 ~= 0
+      or type(context.anchor) ~= "number" or context.anchor < 0 or context.anchor % 1 ~= 0
+      or type(context.caret) ~= "number" or context.caret < 0 or context.caret % 1 ~= 0 then
+    errors.raise("INVALID_ARGUMENT", "IME composition context is malformed")
+  end
+  local view = self.ui.views[context.view_id]
+  if not view then
+    errors.raise("INVALID_STATE", "IME composition target view was removed", {
+      view_id = context.view_id,
+    })
+  end
+  if self.ui.focus ~= context.view_id or not view.focused or not view.visible then
+    errors.raise("INVALID_STATE", "IME composition target is no longer focused and visible", {
+      view_id = context.view_id,
+    })
+  end
+  local document = self.documents:get(view.document_id)
+  local changed = document:refresh_metadata()
+  if changed then
+    self:_apply_document_edits(document.id, nil, nil, document.length)
+    self:_publish_ui()
+    errors.raise("STALE_VERSION", "document changed during IME composition", {
+      expected = context.document_version, current = document.version,
+    })
+  end
+  if document.version ~= context.document_version then
+    errors.raise("STALE_VERSION", "IME composition document version changed", {
+      expected = context.document_version, current = document.version,
+    })
+  end
+  if view.selection.anchor ~= context.anchor or view.selection.caret ~= context.caret then
+    errors.raise("INVALID_STATE", "IME composition selection changed", {
+      view_id = context.view_id,
+    })
+  end
+  return { status = "valid", view_id = view.id, document_version = document.version }
+end
+
+function Runtime:commit_ime_composition(context, text)
+  self:_assert_running()
+  if type(text) ~= "string" or #text == 0 then
+    errors.raise("INVALID_ARGUMENT", "IME commit must contain non-empty UTF-8 text")
+  end
+  self:validate_ime_composition(context)
+  local view = self.ui.views[context.view_id]
+  local document = self.documents:get(view.document_id)
+  local result = view:replace_selection(document, text, {
+    expected_version = context.document_version,
+  })
+  self:_publish_ui()
+  return {
+    status = "inserted",
+    view_id = view.id,
+    version = result.version,
+    byte_count = #text,
+  }
+end
+
 function Runtime:_insert_frontend_bytes(bytes)
   if type(bytes) ~= "string" then
     errors.raise("INVALID_ARGUMENT", "frontend text payload must be a byte string")
@@ -577,7 +680,7 @@ end
 -- remain on the Protocol 1.0.0 base capability set.
 function Runtime:supports_protocol_capability(name)
   self:_assert_running()
-  return name == "pane-splitter-resize/1"
+  return name == "pane-splitter-resize/1" or name == "ime-composition/1"
 end
 
 function Runtime:publish_ui()

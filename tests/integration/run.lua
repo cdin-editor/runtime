@@ -72,6 +72,67 @@ runtime:handle_frontend_event({
   position = { x = 2, y = 1 },
 })
 
+-- IME composition captures the focused view, exact document version and
+-- Runtime-owned selection. Preedit is intentionally never dispatched here;
+-- only the final committed bytes reach the document mutation path.
+local ime_document = runtime:open_document("abcdef")
+local ime_view = runtime:create_view(ime_document.id)
+ime_view:set_selection(2, 4)
+local ime_context = runtime:begin_ime_composition({
+  view_id = ime_view.id,
+  document_version = ime_document.version,
+})
+A.equal(ime_context.view_id, ime_view.id)
+A.equal(ime_context.document_version, ime_document.version)
+A.equal(ime_context.anchor, 2)
+A.equal(ime_context.caret, 4)
+A.equal(runtime:validate_ime_composition(ime_context).status, "valid")
+local ime_before_commit = ime_document:read(0, 32)
+A.equal(ime_before_commit, "abcdef")
+local ime_commit = runtime:commit_ime_composition(ime_context, "XY")
+A.equal(ime_commit.status, "inserted")
+A.equal(ime_commit.view_id, ime_view.id)
+A.equal(ime_commit.version, ime_document.version)
+A.equal(ime_document:read(0, 32), "abXYef")
+A.error_code(function()
+  runtime:commit_ime_composition(ime_context, "XY")
+end, "STALE_VERSION")
+
+-- A changed selection, focused view or document version invalidates the
+-- captured context and must not mutate canonical bytes.
+local selection_context = runtime:begin_ime_composition({
+  view_id = ime_view.id, document_version = ime_document.version,
+})
+ime_view:set_selection(0, 0)
+local selection_bytes = ime_document:read(0, 32)
+A.error_code(function()
+  runtime:commit_ime_composition(selection_context, "stale")
+end, "INVALID_STATE")
+A.equal(ime_document:read(0, 32), selection_bytes)
+
+ime_view:set_selection(1, 1)
+local focus_context = runtime:begin_ime_composition({
+  view_id = ime_view.id, document_version = ime_document.version,
+})
+local other_ime_document = runtime:open_document("other")
+local other_ime_view = runtime:create_view(other_ime_document.id)
+local focus_bytes = ime_document:read(0, 32)
+A.error_code(function()
+  runtime:commit_ime_composition(focus_context, "wrong-view")
+end, "INVALID_STATE")
+A.equal(ime_document:read(0, 32), focus_bytes)
+
+local stale_context = runtime:begin_ime_composition({
+  view_id = other_ime_view.id, document_version = other_ime_document.version,
+})
+other_ime_document:replace(0, 0, "x", { expected_version = other_ime_document.version })
+local stale_bytes = other_ime_document:read(0, 32)
+A.error_code(function()
+  runtime:commit_ime_composition(stale_context, "stale-version")
+end, "STALE_VERSION")
+A.equal(other_ime_document:read(0, 32), stale_bytes)
+A.equal(runtime:supports_protocol_capability("ime-composition/1"), true)
+
 -- Semantic PaneTree resize is dispatched on the Runtime owner thread. Nested
 -- split identity, children, focus and exact-once revision semantics are stable.
 local outer_split_view = runtime:create_view(event_document.id, {
