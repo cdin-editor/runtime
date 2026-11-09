@@ -75,28 +75,28 @@ runtime:handle_frontend_event({
 -- IME composition captures the focused view, exact document version and
 -- Runtime-owned selection. Preedit is intentionally never dispatched here;
 -- only the final committed bytes reach the document mutation path.
-local ime_document = runtime:open_document("abcdef")
+local ime_document = runtime:open_document("0123456789")
 local ime_view = runtime:create_view(ime_document.id)
 runtime.ui:set_focus(ime_view.id)
-ime_view:set_selection(2, 4)
+ime_view:set_selection(4, 9)
 local ime_context = runtime:begin_ime_composition({
   view_id = ime_view.id,
   document_version = ime_document.version,
 })
 A.equal(ime_context.view_id, ime_view.id)
 A.equal(ime_context.document_version, ime_document.version)
-A.equal(ime_context.anchor, 2)
-A.equal(ime_context.caret, 4)
+A.equal(ime_context.anchor, 4)
+A.equal(ime_context.caret, 9)
 A.equal(runtime:validate_ime_composition(ime_context).status, "valid")
 local ime_before_commit = ime_document:read(0, 32)
-A.equal(ime_before_commit, "abcdef")
-local ime_commit = runtime:commit_ime_composition(ime_context, "XY")
+A.equal(ime_before_commit, "0123456789")
+local ime_commit = runtime:commit_ime_composition(ime_context, "éب")
 A.equal(ime_commit.status, "inserted")
 A.equal(ime_commit.view_id, ime_view.id)
 A.equal(ime_commit.version, ime_document.version)
-A.equal(ime_document:read(0, 32), "abXYef")
+A.equal(ime_document:read(0, 32), "0123éب9")
 A.error_code(function()
-  runtime:commit_ime_composition(ime_context, "XY")
+  runtime:commit_ime_composition(ime_context, "éب")
 end, "STALE_VERSION")
 
 -- A changed selection, focused view or document version invalidates the
@@ -133,6 +133,16 @@ A.error_code(function()
   runtime:commit_ime_composition(stale_context, "stale-version")
 end, "STALE_VERSION")
 A.equal(other_ime_document:read(0, 32), stale_bytes)
+
+local removed_context = runtime:begin_ime_composition({
+  view_id = other_ime_view.id, document_version = other_ime_document.version,
+})
+runtime.ui:remove_view(other_ime_view.id)
+local removed_bytes = other_ime_document:read(0, 32)
+A.error_code(function()
+  runtime:commit_ime_composition(removed_context, "removed-view")
+end, "INVALID_STATE")
+A.equal(other_ime_document:read(0, 32), removed_bytes)
 A.equal(runtime:supports_protocol_capability("ime-composition/1"), true)
 
 -- Semantic PaneTree resize is dispatched on the Runtime owner thread. Nested
