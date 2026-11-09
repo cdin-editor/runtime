@@ -125,9 +125,24 @@ A.error_code(function()
     type = "pane.set_split_ratio", split_id = inner_first_id, ratio = 0.5,
   })
 end, "NOT_FOUND")
+local minimum_result = runtime:handle_frontend_event({
+  type = "pane.set_split_ratio", split_id = inner_id, ratio = 0.1,
+})
+A.equal(minimum_result.status, "applied")
+A.equal(minimum_result.revision, rejected_revision + 1)
+A.equal(runtime.ui.pane_tree:snapshot().root.second.ratio, 0.1)
+
+local maximum_result = runtime:handle_frontend_event({
+  type = "pane.set_split_ratio", split_id = inner_id, ratio = 0.8999,
+})
+A.equal(maximum_result.status, "applied")
+A.equal(maximum_result.revision, rejected_revision + 2)
+A.equal(runtime.ui.pane_tree:snapshot().root.second.ratio, 0.8999)
+
+local boundary_revision = runtime.ui.revision
 A.error_code(function()
   runtime:handle_frontend_event({
-    type = "pane.set_split_ratio", split_id = inner_id, ratio = 0.1,
+    type = "pane.set_split_ratio", split_id = inner_id, ratio = 0.0999,
   })
 end, "INVALID_ARGUMENT")
 A.error_code(function()
@@ -135,8 +150,8 @@ A.error_code(function()
     type = "pane.set_split_ratio", split_id = inner_id, ratio = 0.9,
   })
 end, "INVALID_ARGUMENT")
-A.equal(runtime.ui.revision, rejected_revision)
-A.equal(runtime.ui.pane_tree:snapshot().root.second.ratio, 0.62)
+A.equal(runtime.ui.revision, boundary_revision)
+A.equal(runtime.ui.pane_tree:snapshot().root.second.ratio, 0.8999)
 A.equal(runtime.ui.focus, retained_focus)
 
 runtime:close_document(event_document.id)
