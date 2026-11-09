@@ -221,9 +221,11 @@ function PaneTree:set_split_ratio(split_id, ratio)
   if type(split_id) ~= "string" or split_id == "" then
     errors.raise("INVALID_ARGUMENT", "split id is required")
   end
+  -- The protocol's integer basis-point contract is inclusive at 1000
+  -- and 8999. Runtime receives the exact decimal ratio derived from bp/10000.
   if type(ratio) ~= "number" or ratio ~= ratio
-      or ratio <= 0.1 or ratio >= 0.9 then
-    errors.raise("INVALID_ARGUMENT", "split ratio must be between 0.1 and 0.9")
+      or ratio < 0.1 or ratio > 0.8999 then
+    errors.raise("INVALID_ARGUMENT", "split ratio must be between 0.1 and 0.8999")
   end
 
   local target = find_split_by_id(self.root, split_id)
