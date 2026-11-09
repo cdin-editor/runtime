@@ -156,7 +156,8 @@ local nested = pane_tree:snapshot().root.first
 A.equal(nested.kind, "split")
 A.truthy(pane_tree:set_split_ratio(nested.id, 0.55))
 local nested_snapshot = pane_tree:snapshot().root
-A.equal(nested_snapshot.ratio, 0.7)
+-- Resizing the nested split must preserve the selected parent's ratio too.
+A.equal(nested_snapshot.ratio, 0.8999)
 A.equal(nested_snapshot.first.ratio, 0.55)
 A.equal(#pane_tree:list_views(), 4)
 A.truthy(pane_tree:remove_view("v3")); A.equal(#pane_tree:list_views(), 3)
