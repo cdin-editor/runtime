@@ -77,6 +77,7 @@ runtime:handle_frontend_event({
 -- only the final committed bytes reach the document mutation path.
 local ime_document = runtime:open_document("abcdef")
 local ime_view = runtime:create_view(ime_document.id)
+runtime.ui:set_focus(ime_view.id)
 ime_view:set_selection(2, 4)
 local ime_context = runtime:begin_ime_composition({
   view_id = ime_view.id,
@@ -116,6 +117,7 @@ local focus_context = runtime:begin_ime_composition({
 })
 local other_ime_document = runtime:open_document("other")
 local other_ime_view = runtime:create_view(other_ime_document.id)
+runtime.ui:set_focus(other_ime_view.id)
 local focus_bytes = ime_document:read(0, 32)
 A.error_code(function()
   runtime:commit_ime_composition(focus_context, "wrong-view")
