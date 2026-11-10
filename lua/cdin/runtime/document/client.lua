@@ -122,7 +122,7 @@ function Client:read_lines(first_line, line_count, expected_version, anchor_byte
     errors.raise("INVALID_ARGUMENT", "line_count must be an integer from 1 to 4096")
   end
   if anchor_byte ~= nil and (type(anchor_byte) ~= "number" or anchor_byte < 0
-      or anchor_byte % 1 ~= 0 or anchor_byte > self.length) then
+      or anchor_byte % 1 ~= 0) then
     errors.raise("INVALID_ARGUMENT", "anchor_byte must be a document byte offset")
   end
   local pinned_version = expected_version == nil and self.version or expected_version
