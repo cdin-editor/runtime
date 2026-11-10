@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+### Artifact-first Runtime package
+
+- Add a deterministic, platform-neutral Lua module archive alongside the
+  contributor source archive. The module package contains only tracked Runtime
+  Lua modules, package metadata and redistribution notices; it excludes Git,
+  tests, CI and development files.
+- Publish TAR.GZ as the single canonical universal Registry artifact and ZIP
+  as a checksummed direct-download companion, avoiding duplicate Registry
+  matches for the same target.
+- Generate schema 1.1.0 Component Release Metadata from the exact source
+  revision and real archive bytes, including the Runtime Extension Contract,
+  Host API requirement, sizes, SHA-256 values, immutable asset URLs and
+  build provenance.
+- Verify checksums, archive paths, package manifests and extracted Lua 5.4
+  loading outside the Runtime source checkout in the normal CI/release gate.
+- This prepares the artifact pipeline; it does not create a version tag,
+  publish release assets, or mutate the existing immutable RC1/RC2 Registry
+  documents or Catalog entries. The release owner must choose a new immutable
+  package identity if the current source revision differs from the existing
+  RC2 metadata pin.
+
+
 ### Runtime RC2 Registry integration candidate
 
 - Add a separate immutable Release Metadata candidate
