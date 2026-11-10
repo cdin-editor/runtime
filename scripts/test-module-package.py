@@ -208,7 +208,10 @@ def main() -> int:
     parser.add_argument("--version", default="")
     args = parser.parse_args()
 
-    metadata_files = sorted(args.artifact_dir.glob("runtime-*.json"))
+    metadata_files = sorted(
+        path for path in args.artifact_dir.glob("runtime-*.json")
+        if not path.name.endswith(".release.json")
+    )
     if args.version:
         metadata_files = [path for path in metadata_files if path.name == f"runtime-{args.version}.json"]
     if len(metadata_files) != 1:
@@ -224,6 +227,8 @@ def main() -> int:
     revision = source_units[0].get("revision")
     if not isinstance(revision, str) or len(revision) not in (40, 64):
         raise RuntimeError("release metadata has no full source revision")
+    if source_units[0].get("repository_uri") != "https://github.com/cdin-editor/runtime":
+        raise RuntimeError("Runtime publisher source unit has the wrong repository identity")
     if metadata_path.name != f"runtime-{version}.json":
         raise RuntimeError("Runtime metadata filename is not the canonical ADR-0028 asset name")
 
