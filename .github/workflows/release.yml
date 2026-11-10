@@ -1,4 +1,4 @@
-name: Build and publish release
+name: Build and publish Runtime source and module packages
 
 on:
   push:
@@ -13,27 +13,26 @@ jobs:
       contents: write
       id-token: write
       attestations: write
-    name: Test, package and publish source archives
+    name: Test, package and publish Runtime source and module archives
     uses: m-mdy-m/pipeline/.github/workflows/release.yml@main
     with:
       pipeline-ref: main
       changelog-path: CHANGELOG.md
-      # Installs Lua if needed, then unit + integration tests and boundary checks.
+      # Unit/integration/boundary gates plus source-independent module extraction smoke.
       test-command: bash scripts/ci-check.sh
-      # Validates tag == git-derived version == CHANGELOG section, then builds archives.
-      build-command: bash scripts/package-release.sh
-      # Unpacks the published archive, checks checksums and embedded version,
-      # and runs the whole suite inside the package.
-      artifact-test-command: bash scripts/test-package.sh
+      # Keep the contributor source archive and add the install-time Lua module package.
+      build-command: bash scripts/package-release.sh && python3 scripts/package-modules.py
+      # Verify both source and install-time module packages as users receive them.
+      artifact-test-command: bash scripts/test-package.sh && python3 scripts/test-module-package.py
       artifact-path: |
         dist/cdin-runtime-*.tar.gz
         dist/cdin-runtime-*.tar.gz.sha256
         dist/cdin-runtime-*.zip
         dist/cdin-runtime-*.zip.sha256
-      # Runtime is pure Lua with identical source on every OS, so a single
-      # target builds the archives. Release matrix targets that upload files
-      # with the same names would collide on the GitHub Release.
+        dist/runtime-*.release.json
+      # Runtime is pure Lua and has one universal target. Multiple matrix jobs
+      # would upload identically named artifacts and make release publication ambiguous.
       build-matrix-json: >-
         {"include":[
-          {"id":"source","os":"ubuntu-24.04"}
+          {"id":"source-and-modules","os":"ubuntu-24.04"}
         ]}
