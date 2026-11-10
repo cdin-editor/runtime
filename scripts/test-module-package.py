@@ -208,9 +208,9 @@ def main() -> int:
     parser.add_argument("--version", default="")
     args = parser.parse_args()
 
-    metadata_files = sorted(args.artifact_dir.glob("runtime-*.release.json"))
+    metadata_files = sorted(args.artifact_dir.glob("runtime-*.json"))
     if args.version:
-        metadata_files = [path for path in metadata_files if path.name == f"runtime-{args.version}.release.json"]
+        metadata_files = [path for path in metadata_files if path.name == f"runtime-{args.version}.json"]
     if len(metadata_files) != 1:
         raise RuntimeError(f"expected exactly one Runtime release metadata file, found {len(metadata_files)}")
     metadata_path = metadata_files[0]
@@ -224,6 +224,28 @@ def main() -> int:
     revision = source_units[0].get("revision")
     if not isinstance(revision, str) or len(revision) not in (40, 64):
         raise RuntimeError("release metadata has no full source revision")
+    if source_units[0].get("repository_uri") != "https://github.com/cdin-editor/runtime":
+        raise RuntimeError("Runtime publisher source unit has the wrong repository identity")
+    if metadata_path.name != f"runtime-{version}.json":
+        raise RuntimeError("Runtime metadata asset filename is not canonical")
+
+    schema_version = metadata.get("schema_version")
+    publication = metadata.get("publication")
+    if schema_version == "1.2.0":
+        expected_publication = {
+            "provider": "github-releases-v1",
+            "repository_uri": "https://github.com/cdin-editor/runtime",
+            "tag": f"v{version}",
+            "tag_commit": revision,
+            "metadata_asset_name": metadata_path.name,
+        }
+        if publication != expected_publication:
+            raise RuntimeError("ADR-0028 publication metadata does not match the exact Runtime release identity")
+    elif schema_version == "1.1.0":
+        if publication is not None:
+            raise RuntimeError("branch metadata must not claim GitHub Release publication provenance")
+    else:
+        raise RuntimeError(f"unsupported Runtime Component Release Metadata schema: {schema_version!r}")
 
     artifacts = metadata.get("artifacts")
     if not isinstance(artifacts, list) or len(artifacts) != 1:
