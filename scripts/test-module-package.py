@@ -208,7 +208,10 @@ def main() -> int:
     parser.add_argument("--version", default="")
     args = parser.parse_args()
 
-    metadata_files = sorted(args.artifact_dir.glob("runtime-*.json"))
+    metadata_files = sorted(
+        path for path in args.artifact_dir.glob("runtime-*.json")
+        if not path.name.endswith(".release.json")
+    )
     if args.version:
         metadata_files = [path for path in metadata_files if path.name == f"runtime-{args.version}.json"]
     if len(metadata_files) != 1:
