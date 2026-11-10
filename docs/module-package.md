@@ -39,8 +39,12 @@ python3 scripts/test-module-package.py
 ```
 
 The builder derives the version and full source commit from Runtime itself.
-On a version-tagged release run, the tag, Runtime version and generated
-Component Release Metadata must agree. The output directory is `dist/`.
+On a version-tagged release run, the exact tag must resolve to the packaged
+HEAD commit and agree with the Runtime version. The publisher emits the
+canonical `runtime-<version>.json` metadata asset with the ADR-0028
+`publication` identity. An untagged local package build emits the same
+filename without claiming GitHub publication provenance. The output directory
+is `dist/`.
 
 The test verifies both archive checksums and sizes, rejects unsafe or
 non-regular archive entries, compares the extracted TAR.GZ and ZIP contents,
@@ -50,10 +54,18 @@ load test runs outside the Runtime Git checkout.
 
 ## Registry delivery
 
-`runtime-<version>.release.json` is a Registry Component Release Metadata
-candidate using schema 1.1.0. It records the exact source commit, Runtime
-Extension Contract 1.0.0, Runtime Host API requirement 1.0.0, canonical
-artifact digest/size, immutable GitHub Release URL, recipe and toolchain.
+For a tagged release, `runtime-<version>.json` is the canonical ADR-0028
+Component Release Metadata asset and uses schema 1.2.0. Its
+`publication` object binds `github-releases-v1`, the canonical Runtime
+repository URI, exact tag, full tag-resolved commit and this metadata asset's
+basename. It records the Runtime Extension Contract 1.0.0, Runtime Host API
+requirement 1.0.0, canonical artifact digest/size, immutable artifact URL,
+recipe and toolchain. It deliberately omits its own URI/digest/size because
+Registry obtains those from the GitHub Release Assets API.
+
+An untagged local package build emits the same JSON basename as a package-test
+fixture but omits `publication`; it is not a publishable Release Metadata
+document.
 
 TAR.GZ is the single canonical Registry artifact for the universal
 `any/any/none` target. ZIP is also published as a direct-download companion,
