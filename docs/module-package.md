@@ -73,8 +73,11 @@ but is recorded under the metadata extension
 `org.cdin.runtime.package-formats`; publishing both formats as separate
 Registry artifacts for the same target would create an ambiguous match.
 
-The generated metadata is a release output, not a mutable update to an
-existing Registry Catalog entry. After the release assets are published and
-verified, the exact metadata bytes must be committed under a new immutable
-Registry release identity and then referenced by a Catalog update. Do not
-retarget or overwrite the existing RC1/RC2 metadata documents.
+The generated metadata is a GitHub Release Asset, not a tracked
+per-version source file. Under ADR-0028, the Catalog declares the Runtime
+repository once through a `release_sources` mapping; Registry discovers and
+verifies eligible release metadata assets through the GitHub Releases API.
+This becomes consumable only after Registry #53 implements the accepted
+discovery contract and the product uses a compatible Catalog schema. Preserve
+the existing RC1/RC2 metadata and Manifest identities for historical replay;
+never retarget or overwrite them.
