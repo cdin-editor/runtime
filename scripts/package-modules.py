@@ -155,11 +155,19 @@ def main() -> int:
             f"requested package version {version} does not match Runtime's resolved version {resolved_version}"
         )
 
-    tag = os.getenv("GITHUB_REF_NAME", "")
-    if os.getenv("GITHUB_REF_TYPE") == "tag" and tag:
-        tag_version = tag.removeprefix("v")
-        if tag_version != version:
-            raise RuntimeError(f"tag version {tag_version} does not match Runtime package version {version}")
+    release_tag = os.getenv("PIPELINE_RELEASE_TAG") or os.getenv("GITHUB_REF_NAME", "")
+    is_release_tag = os.getenv("GITHUB_REF_TYPE") == "tag" or bool(os.getenv("PIPELINE_RELEASE_TAG"))
+    if is_release_tag:
+        expected_tag = f"v{version}"
+        if release_tag != expected_tag:
+            raise RuntimeError(
+                f"release tag {release_tag!r} does not match the exact Runtime tag {expected_tag!r}"
+            )
+        resolved_tag_commit = git("rev-parse", "--verify", f"refs/tags/{release_tag}^{{commit}}")
+        if resolved_tag_commit != revision:
+            raise RuntimeError(
+                f"release tag {release_tag} resolves to {resolved_tag_commit}, not packaged HEAD {revision}"
+            )
 
     files = source_files()
     files["lua/cdin/runtime/core/release_metadata.lua"] = (
@@ -250,7 +258,7 @@ def main() -> int:
         sidecar.write_text(f"{checksum}  {artifact_path.name}\n", encoding="utf-8")
 
     release_metadata = {
-        "schema_version": "1.1.0",
+        "schema_version": "1.2.0" if is_release_tag else "1.1.0",
         "component_id": "runtime",
         "variant": "default",
         "version": version,
@@ -272,7 +280,20 @@ def main() -> int:
             "org.cdin.runtime.package-formats": {"zip": zip_companion}
         },
     }
-    metadata_path = args.output_dir / f"runtime-{version}.release.json"
+    # ADR-0028: a tagged publisher emits the metadata JSON as a canonical
+    # GitHub Release Asset. The document identifies the exact tag commit but
+    # deliberately does not embed its own asset URI, digest or byte size;
+    # GitHub Release Asset API metadata supplies those values to Registry.
+    if is_release_tag:
+        release_metadata["publication"] = {
+            "provider": "github-releases-v1",
+            "repository_uri": REPOSITORY,
+            "tag": release_tag,
+            "tag_commit": revision,
+            "metadata_asset_name": f"runtime-{version}.json",
+        }
+
+    metadata_path = args.output_dir / f"runtime-{version}.json"
     metadata_path.write_bytes(stable_json(release_metadata))
 
     print(f"Runtime module package: {version} ({revision})")

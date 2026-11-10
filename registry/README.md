@@ -40,3 +40,20 @@ The candidate provides the canonical contract identity accepted in
 Extension API label `1.0` maps to Registry SemVer `1.0.0`; it remains
 independent of the Runtime package version and the Backend-provided Host API
 version.
+
+## ADR-0028 publisher migration — 2026-11-10
+
+The existing RC1/RC2 tracked metadata documents and their Catalog identities
+are historical compatibility inputs. They are not rewritten or deleted by
+the publisher migration. The immutable RC2 GitHub Release currently carries
+the earlier `runtime-1.0.0-rc.2.release.json` output name; that historical
+asset is not the canonical ADR-0028 basename and must not be relabelled or
+replaced in place.
+
+New tagged Runtime releases now generate the canonical
+`runtime-<version>.json` Release Asset from the exact tag commit, with
+schema 1.2.0 and the required `publication` identity. Registry must not
+resolve this dynamic source until its owning implementation of accepted
+ADR-0028 and the corresponding Catalog `release_sources` migration are
+verified. Publishing a compliant component metadata asset alone does not
+complete Runtime #16 or CDIN #122.
