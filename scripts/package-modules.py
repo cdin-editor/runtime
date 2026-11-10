@@ -15,21 +15,20 @@ import io
 import json
 import os
 import re
-import shutil
 import stat
 import subprocess
 import sys
 import tarfile
 import zipfile
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY = "https://github.com/cdin-editor/runtime"
 RELEASE_BASE = "https://github.com/cdin-editor/runtime/releases/download"
 VERSION_PATTERN = re.compile(
-    r"^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)"
-    r"(?:-([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?"
-    r"(?:\\+([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?$"
+    r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)"
+    r"(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?"
+    r"(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$"
 )
 
 
@@ -126,15 +125,6 @@ def write_zip(destination: Path, root_name: str, files: dict[str, bytes], epoch:
             info.external_attr = (stat.S_IFREG | 0o644) << 16
             info.flag_bits |= 0x800
             archive.writestr(info, data, compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)
-
-
-def safe_relative(name: str, expected_root: str) -> str:
-    path = PurePosixPath(name)
-    if path.is_absolute() or not path.parts or path.parts[0] != expected_root:
-        raise RuntimeError(f"archive entry is outside its package root: {name!r}")
-    if any(part in ("", ".", "..") for part in path.parts):
-        raise RuntimeError(f"unsafe archive entry: {name!r}")
-    return path.as_posix()
 
 
 def main() -> int:
