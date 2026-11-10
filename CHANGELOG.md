@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased]
+
+### Registry release metadata
+
+- Generate the canonical `runtime-<version>.json` Release Asset with the
+  ADR-0028 publication identity from the exact version-tagged source commit.
+- Keep branch metadata candidates separate from published release provenance;
+  preserve historical RC1/RC2 metadata and release assets unchanged.
+
 ## [1.0.0-rc.2] - 2026-11-10
 
 ### Artifact-first Runtime package
