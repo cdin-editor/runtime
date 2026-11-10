@@ -2,7 +2,7 @@ schema_version = 1
 
 [project]
 name = "cdin-runtime"
-description = "CDIN Runtime (pure Lua): tests and boundary checks. Logging goes to the Kernel logger through Host API."
+description = "CDIN Runtime (pure Lua): tests, boundary checks, source archive and install-time module artifact."
 
 [defaults]
 timeout_seconds = 300
@@ -20,7 +20,7 @@ command = ["bash", "scripts/with-lua.sh", "unit"]
 depends_on = ["deps"]
 
 [tasks.integration]
-description = "Integration tests against the fake Host, including Kernel-logger routing"
+description = "Integration tests against the fake Host, including Host logger routing"
 command = ["bash", "scripts/with-lua.sh", "integration"]
 depends_on = ["unit"]
 
@@ -29,12 +29,18 @@ description = "Static guards: no console output, no native code, no second logge
 command = ["bash", "scripts/check-boundaries.sh"]
 
 [tasks.check]
-description = "Full gate used by CI and release"
+description = "Full component gate used by CI and release"
 command = ["bash", "-c", "echo 'cdin-runtime: all checks passed'"]
 depends_on = ["integration", "boundary"]
 
 [tasks.package]
-description = "Build the source release archives into dist/"
+description = "Build contributor source archives into dist/"
 command = ["bash", "scripts/package-release.sh"]
+depends_on = ["check"]
+timeout_seconds = 600
+
+[tasks.package-modules]
+description = "Build deterministic Lua module archives and verify extracted-prefix loading"
+command = ["bash", "-c", "python3 scripts/package-modules.py && python3 scripts/test-module-package.py"]
 depends_on = ["check"]
 timeout_seconds = 600
