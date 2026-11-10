@@ -50,10 +50,18 @@ load test runs outside the Runtime Git checkout.
 
 ## Registry delivery
 
-`runtime-<version>.release.json` is a Registry Component Release Metadata
-candidate using schema 1.1.0. It records the exact source commit, Runtime
-Extension Contract 1.0.0, Runtime Host API requirement 1.0.0, canonical
-artifact digest/size, immutable GitHub Release URL, recipe and toolchain.
+`runtime-<version>.json` is the canonical Component Release Metadata
+Release Asset name for the default Runtime variant. A version-tagged build
+emits schema 1.2.0 and the ADR-0028 `publication` declaration, binding
+`github-releases-v1`, the canonical Runtime repository URI, exact `v<version>`
+tag, full tag-resolved commit SHA and exact metadata asset basename. It is
+generated after the module archives and checksum sidecars, from the same
+tagged source commit as the package artifacts.
+
+A local or branch build emits a schema 1.1.0 metadata candidate without
+`publication`; it is useful for package inspection but is not eligible for
+GitHub Release discovery. The test rejects any mismatch between the candidate
+filename, source-unit repository/revision and publication identity.
 
 TAR.GZ is the single canonical Registry artifact for the universal
 `any/any/none` target. ZIP is also published as a direct-download companion,
@@ -61,8 +69,8 @@ but is recorded under the metadata extension
 `org.cdin.runtime.package-formats`; publishing both formats as separate
 Registry artifacts for the same target would create an ambiguous match.
 
-The generated metadata is a release output, not a mutable update to an
-existing Registry Catalog entry. After the release assets are published and
-verified, the exact metadata bytes must be committed under a new immutable
-Registry release identity and then referenced by a Catalog update. Do not
-retarget or overwrite the existing RC1/RC2 metadata documents.
+The generated metadata is uploaded to the matching GitHub Release as a
+Release Asset. It does not contain its own URI or digest; Registry obtains and
+verifies those from the GitHub Release Asset API. Do not commit new per-version
+metadata files under `registry/releases/`. Historical RC1/RC2 source metadata
+and already-published release assets remain immutable and backward-compatible.
