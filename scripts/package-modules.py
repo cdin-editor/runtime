@@ -53,6 +53,9 @@ def lua_executable() -> str:
     executable = value.splitlines()[-1].strip()
     if not executable:
         raise RuntimeError("scripts/lua-bin.sh did not return a Lua executable")
+    reported = run([executable, "-e", 'io.write(_VERSION)'])
+    if reported != "Lua 5.4":
+        raise RuntimeError(f"module packages require PUC Lua 5.4.x; found {reported}")
     return executable
 
 
