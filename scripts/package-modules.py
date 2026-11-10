@@ -217,6 +217,7 @@ def main() -> int:
         if os.getenv("GITHUB_ACTIONS") == "true" else "local"
     )
     artifacts = []
+    zip_companion: dict[str, object] = {}
     for artifact_path, archive_format in ((tar_path, "tar.gz"), (zip_path, "zip")):
         data = artifact_path.read_bytes()
         artifact = {
@@ -239,10 +240,21 @@ def main() -> int:
                 "runner": runner,
             },
         }
-        artifacts.append(artifact)
+        if archive_format == "tar.gz":
+            # Registry resolves one artifact per target. Keep TAR.GZ canonical;
+            # publishing ZIP as a second identical-target descriptor is ambiguous.
+            artifacts.append(artifact)
+        else:
+            zip_companion = {
+                "format": "zip",
+                "file_name": artifact_path.name,
+                "uri": artifact["uri"],
+                "sha256": artifact["sha256"],
+                "size_bytes": artifact["size_bytes"],
+            }
         checksum = sha256(data)
         sidecar = artifact_path.with_name(artifact_path.name + ".sha256")
-        sidecar.write_text(f"{checksum}  {artifact_path.name}\n", encoding="utf-8")
+        sidecar.write_text(f"{checksum}  {artifact_path.name}\\n", encoding="utf-8")
 
     release_metadata = {
         "schema_version": "1.1.0",
@@ -263,6 +275,9 @@ def main() -> int:
             ],
         },
         "artifacts": artifacts,
+        "extensions": {
+            "org.cdin.runtime.package-formats": {"zip": zip_companion}
+        },
     }
     metadata_path = args.output_dir / f"runtime-{version}.release.json"
     metadata_path.write_bytes(stable_json(release_metadata))
