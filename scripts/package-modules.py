@@ -247,7 +247,7 @@ def main() -> int:
             }
         checksum = sha256(data)
         sidecar = artifact_path.with_name(artifact_path.name + ".sha256")
-        sidecar.write_text(f"{checksum}  {artifact_path.name}\\n", encoding="utf-8")
+        sidecar.write_text(f"{checksum}  {artifact_path.name}\n", encoding="utf-8")
 
     release_metadata = {
         "schema_version": "1.1.0",
