@@ -558,7 +558,7 @@ end
 
 -- Version-pinned line reads are a pull service. The returned strings are
 -- transient exact bytes; this method never stores them on Runtime or View.
-function Runtime:read_view_lines(view_id, first_line, line_count, expected_version)
+function Runtime:read_view_lines(view_id, first_line, line_count, expected_version, anchor_byte)
   self:_assert_running()
   if type(view_id) ~= "string" or view_id == "" then
     errors.raise("INVALID_ARGUMENT", "view_id is required")
@@ -580,7 +580,7 @@ function Runtime:read_view_lines(view_id, first_line, line_count, expected_versi
       current_version = document.version, length = document.length,
     })
   end
-  return document:read_lines(first_line, line_count, expected_version)
+  return document:read_lines(first_line, line_count, expected_version, anchor_byte)
 end
 
 -- Called only by the Backend's Lua owner-thread dispatcher. Raw key policy
@@ -681,6 +681,7 @@ end
 function Runtime:supports_protocol_capability(name)
   self:_assert_running()
   return name == "pane-splitter-resize/1" or name == "ime-composition/1"
+    or name == "byte-anchored-lines/1"
 end
 
 function Runtime:publish_ui()
