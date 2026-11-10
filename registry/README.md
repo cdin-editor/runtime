@@ -41,7 +41,6 @@ Extension API label `1.0` maps to Registry SemVer `1.0.0`; it remains
 independent of the Runtime package version and the Backend-provided Host API
 version.
 
-
 ## ADR-0028 publisher migration — 2026-11-10
 
 The existing RC1/RC2 tracked metadata documents and their Catalog identities
