@@ -23,7 +23,6 @@
   package identity if the current source revision differs from the existing
   RC2 metadata pin.
 
-
 ### Runtime RC2 Registry integration candidate
 
 - Add a separate immutable Release Metadata candidate
