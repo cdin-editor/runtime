@@ -173,8 +173,12 @@ def verify_archive(
     if checksum_fields[0] != digest:
         raise RuntimeError(f"checksum mismatch: {archive_path.name}")
 
-    formats = metadata.get("extensions", {}).get("org.cdin.runtime.package-formats", {})
-    companion = formats.get(expected_format)
+    if expected_format == "tar.gz":
+        artifacts = metadata.get("artifacts", [])
+        companion = artifacts[0] if isinstance(artifacts, list) and len(artifacts) == 1 else None
+    else:
+        formats = metadata.get("extensions", {}).get("org.cdin.runtime.package-formats", {})
+        companion = formats.get(expected_format)
     if not isinstance(companion, dict):
         raise RuntimeError(f"release metadata is missing the {expected_format} companion descriptor")
     if companion.get("file_name") != archive_path.name:
