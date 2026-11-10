@@ -113,7 +113,7 @@ end
 
 -- Read a bounded line window without retaining document bytes on the client.
 -- Each returned line is an exact byte string, including its original EOL bytes.
-function Client:read_lines(first_line, line_count, expected_version)
+function Client:read_lines(first_line, line_count, expected_version, anchor_byte)
   self:_assert_open()
   if type(first_line) ~= "number" or first_line < 0 or first_line % 1 ~= 0 then
     errors.raise("INVALID_ARGUMENT", "first_line must be a non-negative integer")
@@ -121,22 +121,37 @@ function Client:read_lines(first_line, line_count, expected_version)
   if type(line_count) ~= "number" or line_count < 1 or line_count > 4096 or line_count % 1 ~= 0 then
     errors.raise("INVALID_ARGUMENT", "line_count must be an integer from 1 to 4096")
   end
+  if anchor_byte ~= nil and (type(anchor_byte) ~= "number" or anchor_byte < 0
+      or anchor_byte % 1 ~= 0) then
+    errors.raise("INVALID_ARGUMENT", "anchor_byte must be a document byte offset")
+  end
   local pinned_version = expected_version == nil and self.version or expected_version
   if type(pinned_version) ~= "number" or pinned_version < 0 or pinned_version % 1 ~= 0 then
     errors.raise("INVALID_ARGUMENT", "expected_version must be a non-negative integer")
   end
-  local result = check_result(self.host.documents:read_lines(self.handle, {
+  local request = {
     first_line = first_line,
     line_count = line_count,
     expected_version = pinned_version,
-  }), "read_lines")
+  }
+  if anchor_byte ~= nil then request.anchor_byte = anchor_byte end
+  local result = check_result(self.host.documents:read_lines(self.handle, request), "read_lines")
+  local actual_first_line = result.first_line
   if type(result.version) ~= "number" or result.version ~= pinned_version
-      or result.first_line ~= first_line
+      or type(actual_first_line) ~= "number" or actual_first_line < 0
+      or actual_first_line % 1 ~= 0
+      or (anchor_byte == nil and actual_first_line ~= first_line)
+      or type(result.first_byte) ~= "number" or result.first_byte < 0
+      or result.first_byte % 1 ~= 0 or result.first_byte > self.length
       or type(result.total_lines) ~= "number" or result.total_lines < 1
-      or first_line >= result.total_lines
+      or actual_first_line >= result.total_lines
       or type(result.lines) ~= "table" or #result.lines == 0
-      or #result.lines > math.min(line_count, result.total_lines - first_line) then
+      or #result.lines > math.min(line_count, result.total_lines - actual_first_line) then
     errors.raise("INTERNAL", "host document read_lines result violates the documented shape")
+  end
+  if anchor_byte ~= nil and (result.first_byte > anchor_byte
+      or anchor_byte > result.first_byte + #result.lines[1]) then
+    errors.raise("INTERNAL", "host document read_lines returned a window that does not contain its byte anchor")
   end
   for index, bytes in ipairs(result.lines) do
     if type(bytes) ~= "string" then

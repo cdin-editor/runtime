@@ -106,6 +106,7 @@ function M.new(options)
     check_version(document, request.expected_version)
     local first_line = request.first_line
     local line_count = request.line_count
+    local anchor_byte = request.anchor_byte
     local max_bytes = request.max_bytes or 16384
     if type(first_line) ~= "number" or first_line < 0 or first_line % 1 ~= 0
         or type(line_count) ~= "number" or line_count < 1 or line_count > 4096 or line_count % 1 ~= 0
@@ -137,6 +138,23 @@ function M.new(options)
       })
     end
 
+    -- Validate the legacy line fallback even when the byte anchor is
+    -- authoritative, so an older Backend can safely ignore the additive field.
+    if anchor_byte ~= nil then
+      if type(anchor_byte) ~= "number" or anchor_byte < 0 or anchor_byte % 1 ~= 0
+          or anchor_byte > #document.bytes then
+        errors.raise("OUT_OF_RANGE", "anchor_byte is past the end of the document", {
+          requested = anchor_byte, length = #document.bytes,
+        })
+      end
+      local selected = 1
+      for index = 2, total_lines do
+        if starts[index] - 1 <= anchor_byte then selected = index else break end
+      end
+      first_line = selected - 1
+    end
+
+    local first_byte = starts[first_line + 1] - 1
     local lines, used = {}, 0
     local last = math.min(total_lines, first_line + line_count)
     for line_index = first_line + 1, last do
@@ -155,6 +173,7 @@ function M.new(options)
     return {
       version = document.version,
       first_line = first_line,
+      first_byte = first_byte,
       total_lines = total_lines,
       lines = lines,
     }
