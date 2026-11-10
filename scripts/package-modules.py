@@ -156,10 +156,9 @@ def main() -> int:
         )
 
     tag = os.getenv("GITHUB_REF_NAME", "")
-    if os.getenv("GITHUB_REF_TYPE") == "tag" and tag:
-        tag_version = tag.removeprefix("v")
-        if tag_version != version:
-            raise RuntimeError(f"tag version {tag_version} does not match Runtime package version {version}")
+    if os.getenv("GITHUB_REF_TYPE") == "tag":
+        if tag != f"v{version}":
+            raise RuntimeError(f"release tag {tag!r} does not match Runtime package version v{version}")
 
     files = source_files()
     files["lua/cdin/runtime/core/release_metadata.lua"] = (
@@ -250,7 +249,7 @@ def main() -> int:
         sidecar.write_text(f"{checksum}  {artifact_path.name}\n", encoding="utf-8")
 
     release_metadata = {
-        "schema_version": "1.1.0",
+        "schema_version": "1.2.0" if os.getenv("GITHUB_REF_TYPE") == "tag" else "1.1.0",
         "component_id": "runtime",
         "variant": "default",
         "version": version,
@@ -272,7 +271,18 @@ def main() -> int:
             "org.cdin.runtime.package-formats": {"zip": zip_companion}
         },
     }
-    metadata_path = args.output_dir / f"runtime-{version}.release.json"
+    if os.getenv("GITHUB_REF_TYPE") == "tag":
+        # ADR-0028 publication provenance is emitted only for a real version tag.
+        # Branch/local artifacts remain schema 1.1 candidates and are not eligible
+        # for GitHub Release discovery.
+        release_metadata["publication"] = {
+            "provider": "github-releases-v1",
+            "repository_uri": REPOSITORY,
+            "tag": tag,
+            "tag_commit": revision,
+            "metadata_asset_name": f"runtime-{version}.json",
+        }
+    metadata_path = args.output_dir / f"runtime-{version}.json"
     metadata_path.write_bytes(stable_json(release_metadata))
 
     print(f"Runtime module package: {version} ({revision})")
