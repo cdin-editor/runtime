@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [1.0.0-rc.2] - 2026-11-10
 
 ### Artifact-first Runtime package
 
@@ -17,11 +17,7 @@
   build provenance.
 - Verify checksums, archive paths, package manifests and extracted Lua 5.4
   loading outside the Runtime source checkout in the normal CI/release gate.
-- This prepares the artifact pipeline; it does not create a version tag,
-  publish release assets, or mutate the existing immutable RC1/RC2 Registry
-  documents or Catalog entries. The release owner must choose a new immutable
-  package identity if the current source revision differs from the existing
-  RC2 metadata pin.
+- The artifact-first pipeline is implemented in source but publication remains gated on an immutable package identity matching the exact source revision and verified archive bytes. This changelog entry does not imply that release assets or a new Registry Catalog entry have been published.
 
 ### Runtime RC2 Registry integration candidate
 
