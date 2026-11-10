@@ -4,7 +4,6 @@
 set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
-root="$(cd "$here/.." && pwd -P)"
 bash "$here/install-deps.sh"
 bash "$here/with-lua.sh" check
 bash "$here/check-boundaries.sh"
