@@ -208,9 +208,9 @@ def main() -> int:
     parser.add_argument("--version", default="")
     args = parser.parse_args()
 
-    metadata_files = sorted(args.artifact_dir.glob("runtime-*.release.json"))
+    metadata_files = sorted(args.artifact_dir.glob("runtime-*.json"))
     if args.version:
-        metadata_files = [path for path in metadata_files if path.name == f"runtime-{args.version}.release.json"]
+        metadata_files = [path for path in metadata_files if path.name == f"runtime-{args.version}.json"]
     if len(metadata_files) != 1:
         raise RuntimeError(f"expected exactly one Runtime release metadata file, found {len(metadata_files)}")
     metadata_path = metadata_files[0]
@@ -224,6 +224,27 @@ def main() -> int:
     revision = source_units[0].get("revision")
     if not isinstance(revision, str) or len(revision) not in (40, 64):
         raise RuntimeError("release metadata has no full source revision")
+    if metadata_path.name != f"runtime-{version}.json":
+        raise RuntimeError("Runtime metadata filename is not the canonical ADR-0028 asset name")
+
+    release_tag = os.getenv("PIPELINE_RELEASE_TAG") or os.getenv("GITHUB_REF_NAME", "")
+    is_release_tag = os.getenv("GITHUB_REF_TYPE") == "tag" or bool(os.getenv("PIPELINE_RELEASE_TAG"))
+    publication = metadata.get("publication")
+    if is_release_tag:
+        expected_tag = f"v{version}"
+        if metadata.get("schema_version") != "1.2.0" or not isinstance(publication, dict):
+            raise RuntimeError("tagged Runtime releases require Component Release Metadata schema 1.2.0 and publication")
+        expected_publication = {
+            "provider": "github-releases-v1",
+            "repository_uri": "https://github.com/cdin-editor/runtime",
+            "tag": expected_tag,
+            "tag_commit": revision,
+            "metadata_asset_name": metadata_path.name,
+        }
+        if release_tag != expected_tag or publication != expected_publication:
+            raise RuntimeError("Runtime ADR-0028 publication identity does not match the tagged source")
+    elif publication is not None:
+        raise RuntimeError("an untagged Runtime package must not claim a GitHub Release publication identity")
 
     artifacts = metadata.get("artifacts")
     if not isinstance(artifacts, list) or len(artifacts) != 1:
