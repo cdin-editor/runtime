@@ -7,7 +7,7 @@ set -euo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 search_root="${PIPELINE_ARTIFACT_TEST_DIR:-$here/../dist}"
 
-archive="$(find "$search_root" -name 'cdin-runtime-*.tar.gz' -print | sort | head -n 1)"
+archive="$(find "$search_root" -name 'cdin-runtime-*.tar.gz' ! -name '*-modules.tar.gz' -print | sort | head -n 1)"
 [[ -n "$archive" ]] || { echo "no cdin-runtime-*.tar.gz under ${search_root}" >&2; exit 1; }
 
 (cd "$(dirname "$archive")" && sha256sum -c "$(basename "$archive").sha256")
