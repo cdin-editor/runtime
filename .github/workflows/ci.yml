@@ -18,11 +18,11 @@ jobs:
   # `deps` task in pipeline.toml installs Lua. The `check` task runs the unit
   # and integration tests plus scripts/check-boundaries.sh.
   quality:
-    name: Test and boundary checks with Pipeline
+    name: Test, boundary and module package verification with Pipeline
     uses: m-mdy-m/pipeline/.github/workflows/ci.yml@main
     with:
       language: custom
-      pipeline-task: check
+      pipeline-task: package-modules
       pipeline-ref: main
 
   docs:
