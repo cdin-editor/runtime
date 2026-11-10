@@ -143,6 +143,12 @@ def verify_lua_load(package_root: Path, expected_version: str) -> None:
         ["bash", "scripts/lua-bin.sh"], cwd=ROOT, check=True,
         text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     ).stdout.strip().splitlines()[-1]
+    version_check = subprocess.run(
+        [lua_path, "-e", 'io.write(_VERSION)'], cwd=ROOT, check=True,
+        text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+    ).stdout.strip()
+    if version_check != "Lua 5.4":
+        raise RuntimeError(f"module package tests require PUC Lua 5.4.x; found {version_check}")
     expression = (
         'package.path = "lua/?.lua;lua/?/init.lua;" .. package.path; '
         f'local version = require("cdin.runtime.core.version"); '
