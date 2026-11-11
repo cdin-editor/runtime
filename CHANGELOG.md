@@ -2,12 +2,15 @@
 
 ## [Unreleased]
 
+## [1.0.0-rc.3] - 2026-11-11
+
 ### Registry release metadata
 
-- Generate the canonical `runtime-<version>.json` Release Asset with the
-  ADR-0028 publication identity from the exact version-tagged source commit.
-- Keep branch metadata candidates separate from published release provenance;
-  preserve historical RC1/RC2 metadata and release assets unchanged.
+- Prepare the canonical `runtime-1.0.0-rc.3.json` Release Asset with the
+  ADR-0028 publication identity from the exact `v1.0.0-rc.3` source commit.
+- Keep branch metadata candidates separate from published release provenance.
+  The RC2 tag, module archives, legacy metadata asset and static Catalog
+  metadata remain immutable; canonical ADR-0028 discovery is forward-only.
 
 ## [1.0.0-rc.2] - 2026-11-10
 
@@ -26,7 +29,12 @@
   build provenance.
 - Verify checksums, archive paths, package manifests and extracted Lua 5.4
   loading outside the Runtime source checkout in the normal CI/release gate.
-- The artifact-first pipeline is implemented in source but publication remains gated on an immutable package identity matching the exact source revision and verified archive bytes. This changelog entry does not imply that release assets or a new Registry Catalog entry have been published.
+- The tag-backed `v1.0.0-rc.2` GitHub prerelease was published on
+  2026-11-10 with the module TAR.GZ/ZIP packages and checksum inventory. Its
+  historical metadata Release Asset uses the `runtime-1.0.0-rc.2.release.json`
+  basename; that immutable asset is not the canonical ADR-0028
+  `runtime-1.0.0-rc.2.json` identity. Do not rewrite or replace the RC2
+  release. The forward-only publisher emits canonical metadata for a new tag.
 
 ### Runtime RC2 Registry integration candidate
 
@@ -39,8 +47,11 @@
   metadata is now included in Registry Catalog commit
   `2a611eca830c0f235dacab04a1d006a8fd46e586`; CDIN pins that Catalog and its
   exact version check is running.
-- This is an integration candidate, not a formal `v1.0.0-rc.2` tag or
-  GitHub Release. Live product-version verification remains an exit gate.
+- The published `v1.0.0-rc.2` tag and Release are historical immutable
+  identities. The static Catalog candidate and legacy `.release.json` asset
+  are not retroactively converted to ADR-0028 publication metadata. A new
+  exact-tag release is required for canonical Release discovery and CDIN
+  artifact-first selection.
 
 ### IME composition context
 
