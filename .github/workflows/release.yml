@@ -14,9 +14,9 @@ jobs:
       id-token: write
       attestations: write
     name: Test, package and publish Runtime source and module archives
-    uses: m-mdy-m/pipeline/.github/workflows/release.yml@main
+    uses: m-mdy-m/pipeline/.github/workflows/release.yml@eae4979972be66358646c0a94c99e02127ae0563
     with:
-      pipeline-ref: main
+      pipeline-ref: eae4979972be66358646c0a94c99e02127ae0563
       changelog-path: CHANGELOG.md
       # Unit/integration/boundary gates plus source-independent module extraction smoke.
       test-command: bash scripts/ci-check.sh
