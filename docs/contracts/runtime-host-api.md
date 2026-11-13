@@ -8,7 +8,7 @@ load the Kernel shared library, call C ABI symbols, inspect Kernel structs or
 keep a shadow copy of document bytes/history.
 
 The contract is aligned with CDIN Kernel C ABI `1.1.0` (Kernel package `1.2.1`)
-and CDIN Spec `1.3.0`. ABI `1.1.0` is the first release with the Kernel logging
+and CDIN Spec `1.4.0`. ABI `1.1.0` is the first release with the Kernel logging
 API that section 5 depends on. The companion Backend source implements the C
 adapter; live Lua 5.4 + Kernel integration remains a separate verification gate.
 
