@@ -2,6 +2,7 @@ name: Build and publish Runtime source and module packages
 
 on:
   push:
+    branches: ["**"]
     tags: ["v*"]
 
 permissions:
@@ -14,10 +15,11 @@ jobs:
       id-token: write
       attestations: write
     name: Test, package and publish Runtime source and module archives
-    uses: m-mdy-m/pipeline/.github/workflows/release.yml@0c2c89c7c64575c6b0f66c78925bdf5638abc5e9
+    uses: m-mdy-m/pipeline/.github/workflows/release.yml@75c09b9e6962f3d037198cf72796daf2a35bfb03
     with:
-      pipeline-ref: 0c2c89c7c64575c6b0f66c78925bdf5638abc5e9
+      pipeline-ref: 75c09b9e6962f3d037198cf72796daf2a35bfb03
       changelog-path: CHANGELOG.md
+      dry-run: ${{ github.ref_type != 'tag' }}
       # Unit/integration/boundary gates plus source-independent module extraction smoke.
       test-command: bash scripts/ci-check.sh
       # Keep the contributor source archive and add the install-time Lua module package.
