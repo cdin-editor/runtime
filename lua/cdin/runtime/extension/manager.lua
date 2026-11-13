@@ -15,7 +15,9 @@ function Manager.new(options)
     events = options.events,
     config = options.config,
     logger = options.logger or Log.null(),
-    ui = options.ui,
+    ui_model = options.ui_model,
+    host_ui = options.host_ui,
+    publish_ui = options.publish_ui,
     styles = options.styles,
     themes = options.themes,
     syntax = options.syntax,
@@ -77,8 +79,43 @@ function Manager:_facade(name)
       return manager:unload(plugin_name)
     end,
     ui = {
+      register_panel = function(_, panel_id, panel)
+        if not manager.ui_model then
+          errors.raise("UNSUPPORTED", "Runtime UI contributions are unavailable")
+        end
+        return manager.ui_model:set_panel(panel_id, panel, name)
+      end,
+      update_panel = function(_, panel_id, panel)
+        if not manager.ui_model then
+          errors.raise("UNSUPPORTED", "Runtime UI contributions are unavailable")
+        end
+        return manager.ui_model:set_panel(panel_id, panel, name)
+      end,
+      remove_panel = function(_, panel_id)
+        if not manager.ui_model then
+          errors.raise("UNSUPPORTED", "Runtime UI contributions are unavailable")
+        end
+        return manager.ui_model:remove_panel(panel_id, name)
+      end,
+      set_prompt = function(_, prompt)
+        if not manager.ui_model then
+          errors.raise("UNSUPPORTED", "Runtime UI contributions are unavailable")
+        end
+        return manager.ui_model:set_prompt(prompt, name)
+      end,
+      clear_prompt = function()
+        if not manager.ui_model then
+          errors.raise("UNSUPPORTED", "Runtime UI contributions are unavailable")
+        end
+        return manager.ui_model:clear_prompt(name)
+      end,
+      -- Transitional low-level passthrough retained for trusted embedders only.
+      -- It is deliberately not part of the stable Extension Contract.
       publish = function(_, model)
-        return manager.ui:publish(model)
+        if type(manager.host_ui) ~= "table" or type(manager.host_ui.publish) ~= "function" then
+          errors.raise("UNSUPPORTED", "direct UI publication is unavailable")
+        end
+        return manager.host_ui:publish(model)
       end,
     },
     styles = {
@@ -107,6 +144,17 @@ function Manager:_facade(name)
       end,
     },
   }
+end
+
+function Manager:_publish_ui()
+  if type(self.publish_ui) ~= "function" then return true end
+  local ok, failure = pcall(self.publish_ui)
+  if not ok then
+    local normalized = errors.normalize(failure, "INTERNAL", "publish extension UI")
+    self.logger:error("extension UI snapshot publication failed", { code = normalized.code })
+    return false, normalized
+  end
+  return true
 end
 
 function Manager:load(name, source, config, options)
@@ -140,6 +188,8 @@ function Manager:load(name, source, config, options)
     if self.themes then self.themes:remove_owner(name) end
     if self.syntax then self.syntax:remove_owner(name) end
     if self.styles then self.styles:remove_owner(name) end
+    local ui_changed = self.ui_model and self.ui_model:remove_owner(name)
+    if ui_changed then self:_publish_ui() end
     local failure = errors.normalize(module, "BAD_EXTENSION", "load plugin:" .. name)
     self.logger:child(name):error("extension failed to load", { code = failure.code })
     error(failure, 0)
@@ -154,6 +204,7 @@ function Manager:load(name, source, config, options)
   }
   self.plugins[name] = record
   self.logger:child(name):info("extension loaded", { source = record.source })
+  self:_publish_ui()
   return record
 end
 
@@ -232,7 +283,9 @@ function Manager:unload(name)
   if self.themes then self.themes:remove_owner(name) end
   if self.syntax then self.syntax:remove_owner(name) end
   if self.styles then self.styles:remove_owner(name) end
+  if self.ui_model then self.ui_model:remove_owner(name) end
   self.plugins[name] = nil
+  self:_publish_ui()
 
   if not ok then
     local normalized = errors.normalize(failure, "BAD_EXTENSION", "plugin unload:" .. name)
@@ -270,6 +323,7 @@ function Manager:shutdown()
     if self.themes then self.themes:remove_owner(name) end
     if self.syntax then self.syntax:remove_owner(name) end
     if self.styles then self.styles:remove_owner(name) end
+    if self.ui_model then self.ui_model:remove_owner(name) end
   end
   self.plugins = {}
 end

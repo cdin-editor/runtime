@@ -412,18 +412,85 @@ A.falsy(runtime.commands:get("plugin.hello"))
 -- RT-013 | Reference: https://github.com/cdin-editor/spec
 -- Extension-owned presentation contributions must be removed on unload.
 local owned_plugin = [[return { init = function(core)
+  core.commands:register("plugin.panel.activate", function() return "activated" end)
   core.styles:define("plugin.sample", { category = "test" })
-  core.themes:register("plugin.sample", { ["plugin.sample"] = { role = "plugin.sample" } })
+  core.themes:register("plugin.sample", {
+    ["plugin.sample"] = {
+      foreground = { r = 180, g = 190, b = 200, a = 255 },
+      bold = true,
+    },
+  })
   core.syntax:register("plugin-sample", { extensions = { "psamp" }, tokenize = function() return {} end })
+  core.ui:register_panel("plugin.sample.panel", {
+    kind = "content",
+    title = "Plugin sample",
+    widgets = {
+      { id = "hello", kind = "label", text = "Hello" },
+      { id = "activate", kind = "button", label = "Activate",
+        activate = { command = "plugin.panel.activate" } },
+      { id = "search", kind = "input", value = "", max_bytes = 128,
+        submit = { command = "plugin.panel.activate", arguments = {} } },
+    },
+  })
+  core.ui:set_prompt({
+    id = "plugin.sample.prompt",
+    title = "Plugin prompt",
+    widgets = {
+      { id = "prompt-label", kind = "text", runs = { { text = "Enter a value" } } },
+    },
+  })
 end }]]
 runtime.plugins:load("presentation-sample", owned_plugin, {})
 A.truthy(runtime.styles:has("plugin.sample"))
 A.truthy(runtime.themes.themes["plugin.sample"] ~= nil)
 A.truthy(runtime.syntax:get("plugin-sample") ~= nil)
-runtime.plugins:unload("presentation-sample")
+A.truthy(runtime.ui.panels["plugin.sample.panel"] ~= nil)
+A.equal(runtime.ui.prompt.id, "plugin.sample.prompt")
+A.equal(host.published[#host.published].panels["plugin.sample.panel"].widgets[2].activate.command,
+  "plugin.panel.activate")
+A.truthy(runtime.plugins:unload("presentation-sample"))
 A.falsy(runtime.styles:has("plugin.sample"))
 A.falsy(runtime.themes.themes["plugin.sample"] ~= nil)
 A.falsy(runtime.syntax:get("plugin-sample") ~= nil)
+A.falsy(runtime.ui.panels["plugin.sample.panel"])
+A.equal(runtime.ui.prompt, nil)
+A.falsy(runtime.commands:get("plugin.panel.activate"))
+
+local invalid_presentation_plugin = [[return { init = function(core)
+  core.ui:register_panel("plugin.invalid.panel", {
+    kind = "content", title = "Invalid",
+    widgets = {
+      { id = "duplicate", kind = "label", text = "one" },
+      { id = "duplicate", kind = "button", label = "two",
+        activate = { command = "plugin.panel.activate" } },
+    },
+  })
+end }]]
+A.error_code(function()
+  runtime.plugins:load("invalid-presentation", invalid_presentation_plugin, {})
+end, "INVALID_ARGUMENT")
+A.falsy(runtime.ui.panels["plugin.invalid.panel"])
+
+local invalid_style_plugin = [[return { init = function(core)
+  core.styles:define("plugin.invalid-style", { category = "test" })
+  core.themes:register("plugin.invalid-style", {
+    ["plugin.invalid-style"] = { foreground = { r = 256, g = 0, b = 0, a = 255 } },
+  })
+end }]]
+A.error_code(function()
+  runtime.plugins:load("invalid-style", invalid_style_plugin, {})
+end, "INVALID_ARGUMENT")
+A.falsy(runtime.styles:has("plugin.invalid-style"))
+
+local panel_conflict = [[return { init = function(core)
+  core.ui:register_panel("plugin.sample.panel", {
+    kind = "content", title = "Takeover", widgets = {},
+  })
+end }]]
+local conflict_error = A.error_code(function()
+  runtime.plugins:load("panel-takeover", panel_conflict, {})
+end, "PERMISSION_DENIED")
+A.equal(conflict_error.details.panel_id, "plugin.sample.panel")
 local command_takeover = [[return { init = function(core)
   core.commands:register("document.undo", function() return "hijacked" end, { overwrite = true })
 end }]]
@@ -435,10 +502,14 @@ A.truthy(runtime.commands:get("document.undo"))
 A.equal(runtime.commands:get("document.undo").owner, "core")
 local failed_plugin = [[return { init = function(core)
   core.commands:register("plugin.partial", function() return true end)
+  core.ui:register_panel("plugin.partial.panel", {
+    kind = "content", title = "Partial", widgets = {},
+  })
   error("intentional init failure")
 end, unload = function() error("must not run after init failure") end }]]
 A.error_code(function() runtime.plugins:load("broken", failed_plugin, {}) end, "BAD_EXTENSION")
 A.falsy(runtime.commands:get("plugin.partial"))
+A.falsy(runtime.ui.panels["plugin.partial.panel"])
 
 -- Resolver-backed extension lifecycle is available only to trusted Runtime
 -- embedders. It is deliberately not registered as a Frontend Protocol command.

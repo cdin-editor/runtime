@@ -1,5 +1,6 @@
 local errors = require("cdin.runtime.core.error")
 local tablex = require("cdin.runtime.util.tablex")
+local Presentation = require("cdin.runtime.presentation.ui.presentation")
 
 local Registry = {}
 Registry.__index = Registry
@@ -13,9 +14,7 @@ end
 
 function Registry:define(name, options)
   options = options or {}
-  if type(name) ~= "string" or name == "" then
-    errors.raise("INVALID_ARGUMENT", "style role name is required")
-  end
+  Presentation.validate_style_role(name)
   if self.roles[name] then
     errors.raise("DUPLICATE_REGISTRATION", "style role already exists: " .. name)
   end
