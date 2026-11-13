@@ -2,15 +2,19 @@
 
 ## [Unreleased]
 
-## [1.0.0-rc.3] - 2026-11-11
+### Runtime 1.0.0 release preparation
 
-### Registry release metadata
-
-- Prepare the canonical `runtime-1.0.0-rc.3.json` Release Asset with the
-  ADR-0028 publication identity from the exact `v1.0.0-rc.3` source commit.
-- Keep branch metadata candidates separate from published release provenance.
-  The RC2 tag, module archives, legacy metadata asset and static Catalog
-  metadata remain immutable; canonical ADR-0028 discovery is forward-only.
+- Set the tagless source-snapshot fallback to the intended Runtime package
+  version `1.0.0`. Git tags remain authoritative in source checkouts; only an
+  exact `v1.0.0` tag can produce the stable package identity in a tagged build.
+- Prepare the stable package contract independently from the Backend Runtime
+  Host API, Frontend Protocol and Runtime Extension Contract version numbers.
+- No `v1.0.0` tag, canonical `runtime-1.0.0.json` metadata asset or stable
+  Runtime Release is claimed by this preparation change. The release workflow
+  must run on the exact final tag commit and pass extracted Lua 5.4 package
+  verification before publication.
+- The earlier RC3 preparation target is superseded; do not publish an RC3 tag
+  as a substitute for the requested stable 1.0.0 target.
 
 ## [1.0.0-rc.2] - 2026-11-10
 

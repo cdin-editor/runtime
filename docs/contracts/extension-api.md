@@ -1,10 +1,27 @@
 # Extension API
 
-**Contract version:** `1.0` (compatibility target; host-side legacy parity is incomplete)
+**Contract version:** `1.0` (Registry SemVer `1.0.0`; documented stable extension surface)
 
 Extensions run inside a dedicated Lua environment and receive the capabilities
-explicitly exposed by the Runtime. The API preserves the basic module shape used
-by CDIN extensions, while deliberately not recreating unrestricted globals.
+explicitly exposed by the Runtime. The API preserves the supported directory-based
+module entry shape while deliberately not recreating unrestricted globals.
+
+## Version 1.0.0 compatibility scope
+
+The stable `1.0.0` Extension Contract covers only the entry-point and capability
+surface documented in this file. A configured Backend extension root contains
+one directory per extension, and the entry module is that directory's
+`init.lua`. A top-level single-file `<name>.lua` legacy extension is not
+resolved by the current Backend resolver and is explicitly outside the 1.0.0
+contract; do not describe it as supported. Nested modules are resolved only
+inside the same extension directory through the Backend-owned resolver.
+
+Spec RT-020 and RT-021 remain `PROPOSED`; Runtime 1.0.0 does not promise
+automatic deprecated-API shims or blanket parity with undocumented legacy
+behavior. The old `system`, unrestricted package path and full legacy UI API
+are not part of this contract. `core.ui:publish` remains a provisional
+passthrough and is excluded from the stable extension compatibility promise;
+extensions must not rely on it as a stable UI contribution API.
 
 ## Entry point
 
