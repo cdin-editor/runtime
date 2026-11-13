@@ -26,10 +26,16 @@ fi
 # Invoke through bash because source archives may not preserve executable bits.
 lua_bin="$(bash "$here/lua-bin.sh")"
 runtime_version="$("$lua_bin" -e 'package.path = "lua/?.lua;lua/?/init.lua;" .. package.path; io.write(require("cdin.runtime.core.version").runtime)')"
-if [[ "$runtime_version" != "$version" ]]; then
-  echo "git-derived Runtime version (${runtime_version}) does not match tag (${version})" >&2
-  echo "make sure the tag points at the intended commit and history/tags are fetched" >&2
-  exit 1
+if [[ "${PIPELINE_DRY_RUN:-false}" == "true" && "${GITHUB_REF_TYPE:-}" != "tag" ]]; then
+  # The Pipeline candidate tag is synthetic on branch dry-runs. Keep Runtime
+  # artifacts tied to the version resolved from the source tree.
+  version="$runtime_version"
+else
+  if [[ "$runtime_version" != "$version" ]]; then
+    echo "git-derived Runtime version (${runtime_version}) does not match tag (${version})" >&2
+    echo "make sure the tag points at the intended commit and history/tags are fetched" >&2
+    exit 1
+  fi
 fi
 
 if ! grep -Fq "## [${version}]" CHANGELOG.md; then
