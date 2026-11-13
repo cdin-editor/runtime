@@ -317,14 +317,14 @@ resync_subscription.queue = {
   {
     kind = "EDIT", from_version = gap_base + 1, to_version = gap_base + 2,
     current_version = latest_document.version, edit_count = 1, edits_stored = 1,
-    edits = { { start = latest_document.length - 1, removed = 0, inserted = 1 } },
-    edits_truncated = false, new_length = latest_document.length,
+    edits = { { start = #latest_document.bytes - 1, removed = 0, inserted = 1 } },
+    edits_truncated = false, new_length = #latest_document.bytes,
   },
 }
 local gap_events = resync_document:drain_notifications()
 A.equal(#gap_events, 1)
 A.equal(resync_document.version, latest_document.version)
-A.equal(resync_document.length, latest_document.length)
+A.equal(resync_document.length, #latest_document.bytes)
 A.equal(resync_document:read(0, 64), "complete-state!?")
 runtime:close_document(resync_document.id)
 
