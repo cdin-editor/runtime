@@ -106,10 +106,13 @@ The current manager exposes owner-scoped capabilities. Contributions are validat
   Contributions are removed after failed initialization, explicit unload, or
   Runtime shutdown. An extension cannot overwrite or remove another owner's
   panel/prompt.
-- `core.ui:publish(model)` remains a low-level transitional passthrough for
-  trusted embedders. It bypasses Runtime's owner-scoped semantic model and is
-  **not part of the stable Extension Contract**; extensions must use the
-  contribution methods above instead.
+- `core.ui:publish` is **not exposed to extensions by default**. A trusted
+  embedding application may explicitly set Runtime construction option
+  `allow_legacy_extension_ui_publish = true` to expose the old low-level
+  passthrough during migration. It bypasses the owner-scoped semantic model,
+  is outside the stable Extension Contract, and must never be enabled for
+  untrusted extension sources. Extensions should use the contribution methods
+  above instead.
 
 The full legacy `system`, package path and direct renderer API has not been
 migrated. It must not be assumed available based on the old CDIN tree.

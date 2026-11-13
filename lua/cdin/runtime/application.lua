@@ -59,6 +59,7 @@ function Runtime.new(options)
     logger = self.log:child("extension"),
     ui_model = self.ui,
     host_ui = host.ui,
+    allow_legacy_ui_publish = options.allow_legacy_extension_ui_publish == true,
     publish_ui = function() self:_publish_ui() end,
     styles = self.styles,
     themes = self.themes,

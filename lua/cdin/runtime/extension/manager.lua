@@ -17,6 +17,7 @@ function Manager.new(options)
     logger = options.logger or Log.null(),
     ui_model = options.ui_model,
     host_ui = options.host_ui,
+    allow_legacy_ui_publish = options.allow_legacy_ui_publish == true,
     publish_ui = options.publish_ui,
     styles = options.styles,
     themes = options.themes,
@@ -33,7 +34,7 @@ function Manager:_facade(name)
   -- another one: the logger owns the `component` field.
   local logger = self.logger:child(name)
 
-  return {
+  local facade = {
     commands = {
       register = function(_, command_name, handler, options)
         options = options or {}
@@ -109,14 +110,6 @@ function Manager:_facade(name)
         end
         return manager.ui_model:clear_prompt(name)
       end,
-      -- Transitional low-level passthrough retained for trusted embedders only.
-      -- It is deliberately not part of the stable Extension Contract.
-      publish = function(_, model)
-        if type(manager.host_ui) ~= "table" or type(manager.host_ui.publish) ~= "function" then
-          errors.raise("UNSUPPORTED", "direct UI publication is unavailable")
-        end
-        return manager.host_ui:publish(model)
-      end,
     },
     styles = {
       define = function(_, role, options)
@@ -144,6 +137,18 @@ function Manager:_facade(name)
       end,
     },
   }
+
+  -- Not visible to extensions by default. Only a trusted embedding
+  -- application may explicitly enable this migration-only escape hatch.
+  if manager.allow_legacy_ui_publish then
+    facade.ui.publish = function(_, model)
+      if type(manager.host_ui) ~= "table" or type(manager.host_ui.publish) ~= "function" then
+        errors.raise("UNSUPPORTED", "direct UI publication is unavailable")
+      end
+      return manager.host_ui:publish(model)
+    end
+  end
+  return facade
 end
 
 function Manager:_publish_ui()
