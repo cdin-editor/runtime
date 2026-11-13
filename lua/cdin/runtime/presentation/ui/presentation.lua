@@ -189,7 +189,7 @@ local function widgets(list, field, state)
   for i = 1, count do widget(list[i], field .. "[" .. i .. "]", 1, state) end
 end
 
-function P.validate_panel(panel_id, panel)
+function P.validate_panel(panel_id, panel, state)
   text(panel_id, "panel_id", 128, false)
   if type(panel) ~= "table" or getmetatable(panel) ~= nil then invalid("panel", "panel must be a map") end
   if panel.id ~= nil and panel.id ~= panel_id then invalid("panel.id", "panel.id must match its outer ID") end
@@ -197,12 +197,14 @@ function P.validate_panel(panel_id, panel)
   text(panel.title, "panel.title", P.MAX_TEXT_BYTES, true)
   bool(panel.visible, "panel.visible"); bool(panel.focusable, "panel.focusable"); bool(panel.scrollable, "panel.scrollable")
   if panel.selected_widget_id ~= nil then text(panel.selected_widget_id, "panel.selected_widget_id", 128, false) end
-  local state = { total = 0, ids = {} }; widgets(panel.widgets, "panel.widgets", state)
+  state = state or { total = 0, ids = {} }
+  widgets(panel.widgets, "panel.widgets", state)
   estimate(panel)
+  return state
 end
 
-function P.validate_prompt(prompt)
-  if prompt == nil then return end
+function P.validate_prompt(prompt, state)
+  if prompt == nil then return state end
   if type(prompt) ~= "table" or getmetatable(prompt) ~= nil then invalid("prompt", "prompt must be a map") end
   text(prompt.id, "prompt.id", 128, false); text(prompt.title, "prompt.title", P.MAX_TEXT_BYTES, true)
   if prompt.message ~= nil then text(prompt.message, "prompt.message", P.MAX_TEXT_BYTES, true) end
