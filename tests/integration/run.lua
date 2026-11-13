@@ -448,6 +448,15 @@ A.truthy(runtime.ui.panels["plugin.sample.panel"] ~= nil)
 A.equal(runtime.ui.prompt.id, "plugin.sample.prompt")
 A.equal(host.published[#host.published].panels["plugin.sample.panel"].widgets[2].activate.command,
   "plugin.panel.activate")
+local panel_conflict = [[return { init = function(core)
+  core.ui:register_panel("plugin.sample.panel", {
+    kind = "content", title = "Takeover", widgets = {},
+  })
+end }]]
+local conflict_error = A.error_code(function()
+  runtime.plugins:load("panel-takeover", panel_conflict, {})
+end, "PERMISSION_DENIED")
+A.equal(conflict_error.details.panel_id, "plugin.sample.panel")
 A.truthy(runtime.plugins:unload("presentation-sample"))
 A.falsy(runtime.styles:has("plugin.sample"))
 A.falsy(runtime.themes.themes["plugin.sample"] ~= nil)
@@ -482,15 +491,6 @@ A.error_code(function()
 end, "INVALID_ARGUMENT")
 A.falsy(runtime.styles:has("plugin.invalid-style"))
 
-local panel_conflict = [[return { init = function(core)
-  core.ui:register_panel("plugin.sample.panel", {
-    kind = "content", title = "Takeover", widgets = {},
-  })
-end }]]
-local conflict_error = A.error_code(function()
-  runtime.plugins:load("panel-takeover", panel_conflict, {})
-end, "PERMISSION_DENIED")
-A.equal(conflict_error.details.panel_id, "plugin.sample.panel")
 local command_takeover = [[return { init = function(core)
   core.commands:register("document.undo", function() return "hijacked" end, { overwrite = true })
 end }]]
