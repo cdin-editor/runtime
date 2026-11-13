@@ -279,6 +279,55 @@ A.equal(line_document.length, 1)
 A.equal(line_view.scroll_anchor, 1)
 runtime:close_document(line_document.id)
 
+-- Incomplete notification history must force an authoritative metadata resync.
+-- Cover both an explicitly truncated edit list and a gap in the version chain.
+local resync_document = runtime:open_document("seed")
+local resync_subscription = host.subscriptions[resync_document.subscription.id]
+A.truthy(resync_subscription ~= nil)
+host.documents:replace(resync_document.handle, {
+  expected_version = resync_document.version, start = 0, finish = 4, bytes = "complete-state",
+  undo_blob_before = "", undo_blob_after = "",
+})
+resync_subscription.queue = {
+  {
+    kind = "EDIT", from_version = 0, to_version = 1, current_version = 1,
+    edit_count = 1, edits_stored = 0, edits = {}, edits_truncated = true,
+    new_length = #"complete-state",
+  },
+}
+local truncated_events = resync_document:drain_notifications()
+A.equal(#truncated_events, 1)
+A.equal(resync_document.version, 1)
+A.equal(resync_document.length, #"complete-state")
+A.equal(resync_document:read(0, 64), "complete-state")
+
+-- A later event whose from_version skips the client's current version is also
+-- insufficient to transform byte anchors and must refresh version/length.
+local gap_base = resync_document.version
+host.documents:replace(resync_document.handle, {
+  expected_version = gap_base, start = resync_document.length, finish = resync_document.length, bytes = "!",
+  undo_blob_before = "", undo_blob_after = "",
+})
+host.documents:replace(resync_document.handle, {
+  expected_version = gap_base + 1, start = resync_document.length + 1,
+  finish = resync_document.length + 1, bytes = "?", undo_blob_before = "", undo_blob_after = "",
+})
+local latest_document = host.docs[resync_document.handle.id]
+resync_subscription.queue = {
+  {
+    kind = "EDIT", from_version = gap_base + 1, to_version = gap_base + 2,
+    current_version = latest_document.version, edit_count = 1, edits_stored = 1,
+    edits = { { start = latest_document.length - 1, removed = 0, inserted = 1 } },
+    edits_truncated = false, new_length = latest_document.length,
+  },
+}
+local gap_events = resync_document:drain_notifications()
+A.equal(#gap_events, 1)
+A.equal(resync_document.version, latest_document.version)
+A.equal(resync_document.length, latest_document.length)
+A.equal(resync_document:read(0, 64), "complete-state!?")
+runtime:close_document(resync_document.id)
+
 -- Snapshots remain version-pinned while live document edits continue.
 local snapshot = document:snapshot()
 A.equal(snapshot:read(0, 10), "aZc")
