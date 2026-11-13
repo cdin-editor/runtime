@@ -34,7 +34,15 @@ The separation is intentional: Runtime does not draw the window, perform pixel-l
 
 ## Current status
 
-This repository contains the Runtime policy layer and its Lua-side Backend boundary. The target package identity is `1.0.0`; release preparation is in progress and no `v1.0.0` tag or GitHub Release has been published. The Runtime Host API `1.0.0`, Frontend Protocol `1.0.0` and Runtime Extension Contract `1.0.0` are separate compatibility contracts, not evidence that the Runtime package itself has shipped. Stable publication remains gated on the live native bridge/error/ownership checks and the explicitly scoped extension/migration requirements. See [current status](docs/status.md) for the exact evidence and remaining gates.
+This repository contains the Runtime policy layer and its Lua-side Backend
+boundary. The target package identity is `1.0.0`; release preparation is in
+progress and no `v1.0.0` tag or GitHub Release has been published. The Runtime
+Host API `1.0.0`, Frontend Protocol `1.0.0` and Runtime Extension Contract
+`1.0.0` are separate compatibility contracts, not evidence that the Runtime
+package itself has shipped. Stable publication remains gated on the live
+native bridge/error/ownership checks and the explicitly scoped
+extension/migration requirements. See [current status](docs/status.md) for
+the exact evidence and remaining gates.
 
 The [CDIN specification](https://github.com/cdin-editor/spec) is the source of truth for cross-project contracts. This README describes the current state of this repository; it does not override the specification.
 
