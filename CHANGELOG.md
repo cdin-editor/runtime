@@ -1,20 +1,42 @@
 # Changelog
 
-## [Unreleased]
+## [1.0.0] - 2026-11-13
 
-### Runtime 1.0.0 release preparation
+### Added
 
-- Set the tagless source-snapshot fallback to the intended Runtime package
-  version `1.0.0`. Git tags remain authoritative in source checkouts; only an
-  exact `v1.0.0` tag can produce the stable package identity in a tagged build.
-- Prepare the stable package contract independently from the Backend Runtime
-  Host API, Frontend Protocol and Runtime Extension Contract version numbers.
-- No `v1.0.0` tag, canonical `runtime-1.0.0.json` metadata asset or stable
-  Runtime Release is claimed by this preparation change. The release workflow
-  must run on the exact final tag commit and pass extracted Lua 5.4 package
-  verification before publication.
-- The earlier RC3 preparation target is superseded; do not publish an RC3 tag
-  as a substitute for the requested stable 1.0.0 target.
+- Runtime-owned declarative extension presentation contributions for panels
+  and prompts, including owner-scoped registration, updates, removal and
+  lifecycle cleanup after failed initialization, unload and shutdown.
+- Bounded validation for portable presentation data: stable widget identities,
+  supported widget shapes, typed command actions, UTF-8 text, style values,
+  and aggregate size, nesting and item-count limits.
+- Regression coverage for incomplete document notification history, including
+  truncated edit notifications and version-chain gaps that require an
+  authoritative metadata resynchronization.
+
+### Changed
+
+- Restricted extension UI publication to the Runtime-owned semantic model.
+  The legacy `core.ui.publish` passthrough is hidden from extensions by
+  default; trusted embedders may explicitly enable it for migration with
+  `allow_legacy_extension_ui_publish = true`.
+- Defined the Runtime 1.0.0 package identity independently from the Runtime
+  Host API, Frontend Protocol and Extension Contract version identities.
+- Tightened the documented Extension Contract scope around the supported
+  directory and single-file entry layouts, owner-scoped contributions and
+  trusted embedding boundary.
+
+### Packaging
+
+- Finalized the platform-neutral Lua module package for PUC Lua 5.4.x
+  consumers, with TAR.GZ as the canonical Registry artifact and ZIP as a
+  companion download.
+- Generate deterministic package manifests and SHA-256 checksums, verify
+  extracted modules outside a Runtime checkout, and bind release metadata to
+  the exact source commit.
+- Prepare canonical ADR-0028 `runtime-1.0.0.json` publication metadata for
+  the exact `v1.0.0` tag, including the Runtime Extension Contract 1.0.0 and
+  Runtime Host API compatibility requirement.
 
 ## [1.0.0-rc.2] - 2026-11-10
 
