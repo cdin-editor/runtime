@@ -69,14 +69,18 @@ bootstrap or complete editor application is Stable.
    real Backend/Runtime UI projection, per-client ACK, backpressure and
    PaneTree ordering checks; retain explicit notification overflow/resync and
    failure-injection evidence where the relevant requirement applies.
-4. **Extension and migration scope.** The stable extension surface is the
-   directory-based `init.lua` entry contract and the documented capabilities
-   in [Extension API](contracts/extension-api.md). The top-level single-file
-   legacy form is explicitly scoped out of Runtime 1.0.0 because the current
-   Backend resolver resolves one directory per extension. RT-020 and RT-021
-   remain Proposed in Spec and are not silently promoted to compatibility
-   promises. The provisional `core.ui:publish` passthrough is not part of the
-   stable extension API.
+4. **Extension and migration scope.** Spec RT-013 records both directory
+   `<name>/init.lua` and top-level `<name>.lua` entry shapes. Backend PR
+   [#41](https://github.com/cdin-editor/backend/pull/41) implements the
+   single-file path with confined, bounded, no-follow reads, rejects
+   directory/file ambiguity and adds native tests. Its Linux/macOS/Windows CI
+   and live integration must pass and the PR must merge before this gate is
+   closed. The documented 1.0.0 contract supports both entry shapes; a
+   single-file package has no nested module namespace. RT-020 and RT-021 remain
+   Proposed and are explicitly not compatibility promises in this package:
+   no automatic deprecated-API shims or blanket parity for undocumented
+   behavior is claimed. The provisional `core.ui:publish` passthrough is not
+   part of the stable extension API.
 5. **Exact immutable publication.** A final `v1.0.0` tag must resolve to the
    exact source commit being packaged. The tagged workflow must publish the
    universal Lua module TAR.GZ, ZIP companion, checksums and canonical
