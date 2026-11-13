@@ -156,7 +156,13 @@ def main() -> int:
         )
 
     release_tag = os.getenv("PIPELINE_RELEASE_TAG") or os.getenv("GITHUB_REF_NAME", "")
-    is_release_tag = os.getenv("GITHUB_REF_TYPE") == "tag" or bool(os.getenv("PIPELINE_RELEASE_TAG"))
+    is_release_tag = (
+        os.getenv("PIPELINE_DRY_RUN", "false").lower() != "true"
+        and (
+            os.getenv("GITHUB_REF_TYPE") == "tag"
+            or bool(os.getenv("PIPELINE_RELEASE_TAG"))
+        )
+    )
     if is_release_tag:
         expected_tag = f"v{version}"
         if release_tag != expected_tag:
