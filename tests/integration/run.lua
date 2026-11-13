@@ -364,6 +364,7 @@ A.falsy(runtime.commands:get("plugin.hello"))
 -- Extension-owned presentation contributions must be removed on unload.
 local owned_plugin = [[return { init = function(core)
   core.commands:register("plugin.panel.activate", function() return "activated" end)
+  core.commands:register("plugin.panel.legacy-publish-hidden", function() return core.ui.publish == nil end)
   core.styles:define("plugin.sample", { category = "test" })
   core.themes:register("plugin.sample", {
     ["plugin.sample"] = {
@@ -396,6 +397,9 @@ A.truthy(runtime.styles:has("plugin.sample"))
 A.truthy(runtime.themes.themes["plugin.sample"] ~= nil)
 A.truthy(runtime.syntax:get("plugin-sample") ~= nil)
 A.truthy(runtime.ui.panels["plugin.sample.panel"] ~= nil)
+local hidden_ok, publish_is_hidden = runtime.commands:execute("plugin.panel.legacy-publish-hidden", {}, {})
+A.truthy(hidden_ok)
+A.truthy(publish_is_hidden)
 A.equal(runtime.ui.prompt.id, "plugin.sample.prompt")
 A.equal(host.published[#host.published].panels["plugin.sample.panel"].widgets[2].activate.command,
   "plugin.panel.activate")
@@ -415,6 +419,7 @@ A.falsy(runtime.syntax:get("plugin-sample") ~= nil)
 A.falsy(runtime.ui.panels["plugin.sample.panel"])
 A.equal(runtime.ui.prompt, nil)
 A.falsy(runtime.commands:get("plugin.panel.activate"))
+A.falsy(runtime.commands:get("plugin.panel.legacy-publish-hidden"))
 
 local invalid_presentation_plugin = [[return { init = function(core)
   core.ui:register_panel("plugin.invalid.panel", {
