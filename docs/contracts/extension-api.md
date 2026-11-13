@@ -1,6 +1,6 @@
 # Extension API
 
-**Contract version:** `1.0` (compatibility target; host-side legacy parity is incomplete)
+**Contract version:** `1.0` (Registry SemVer `1.0.0`; documented stable extension surface)
 
 Extensions run inside a dedicated Lua environment and receive the capabilities
 explicitly exposed by the Runtime. The API preserves the basic module shape used
@@ -51,7 +51,7 @@ the runtime is closing.
 
 ## Capability facade
 
-The current manager exposes limited capabilities:
+The current manager exposes owner-scoped capabilities. Contributions are validated before they enter the semantic UI model:
 
 - `core.commands:register(name, handler, options)` and `remove(name)` for
   extension-owned commands. An extension cannot replace a command owned by
@@ -68,12 +68,33 @@ The current manager exposes limited capabilities:
   must be flat strings, numbers or booleans, and extensions never touch a
   logger, `io` or the console directly.
 - `core.unload_plugin(name)` for explicit unload.
-- `core.ui:publish(model)` is currently a narrow provisional passthrough and is
-  expected to be replaced by validated extension UI contributions before a
-  stable release.
+- `core.ui:register_panel(panel_id, panel)` and
+  `core.ui:update_panel(panel_id, panel)` add or replace one panel owned by
+  the calling extension. `core.ui:remove_panel(panel_id)` removes only that
+  extension's panel.
+- `core.ui:set_prompt(prompt)` sets the Runtime-owned prompt when no other
+  extension owns it; `core.ui:clear_prompt()` clears only the caller's prompt.
+  Panel and prompt data use the accepted
+  [UI presentation contract v1](https://github.com/cdin-editor/spec/blob/main/docs/proposals/ui-presentation-contract-v1.md)
+  schema: bounded `label`, `text`, `list`, `tree`, `button` and `input`
+  widgets, stable IDs, typed actions and validated text/style fields.
+- Panel and prompt ownership is transactional with extension lifecycle.
+  Contributions are removed after failed initialization, explicit unload, or
+  Runtime shutdown. An extension cannot overwrite or remove another owner's
+  panel/prompt.
+- `core.ui:publish(model)` remains a low-level transitional passthrough for
+  trusted embedders. It bypasses Runtime's owner-scoped semantic model and is
+  **not part of the stable Extension Contract**; extensions must use the
+  contribution methods above instead.
 
-The full legacy `system`, `themes`, package path and UI extension API has not
-been migrated. It must not be assumed available based on the old CDIN tree.
+The full legacy `system`, package path and direct renderer API has not been
+migrated. It must not be assumed available based on the old CDIN tree.
+Extensions express ordinary UI through the bounded declarative schema;
+free-form drawing belongs to the separately negotiated optional `canvas`
+capability and is unavailable unless the embedding Frontend explicitly accepts
+it. A Frontend without `ui-presentation/1` may render static fallback text but
+must not activate widget actions. Runtime does not advertise Frontend
+capabilities itself.
 
 ## Resolver-backed lifecycle
 

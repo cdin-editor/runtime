@@ -1,5 +1,6 @@
 local errors = require("cdin.runtime.core.error")
 local tablex = require("cdin.runtime.util.tablex")
+local Presentation = require("cdin.runtime.presentation.ui.presentation")
 
 local Registry = {}
 Registry.__index = Registry
@@ -23,16 +24,13 @@ function Registry:register(name, theme, options)
 
   local copied = tablex.copy(theme)
   for role_name, style in pairs(copied) do
+    Presentation.validate_style_role(role_name)
     if not self.styles:has(role_name) then
       errors.raise("INVALID_ARGUMENT", "theme references unknown style role", {
         role = role_name,
       })
     end
-    if type(style) ~= "table" then
-      errors.raise("INVALID_ARGUMENT", "theme style role must map to a table", {
-        role = role_name,
-      })
-    end
+    Presentation.validate_style(style, "theme." .. role_name)
   end
 
   self.themes[name] = {

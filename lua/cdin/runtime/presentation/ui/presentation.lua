@@ -171,7 +171,7 @@ local function widget(value, field, depth, state)
   elseif kind == "input" then
     text(value.value, field .. ".value", P.MAX_TEXT_BYTES, true)
     if value.placeholder ~= nil then text(value.placeholder, field .. ".placeholder", P.MAX_TEXT_BYTES, true) end
-    local limit = value.max_bytes or P.DEFAULT_INPUT_BYTES
+    local limit = value.max_bytes == nil and P.DEFAULT_INPUT_BYTES or value.max_bytes
     integer(limit, field .. ".max_bytes", 1, P.MAX_INPUT_BYTES)
     if #value.value > limit then invalid(field .. ".value", "input value exceeds max_bytes", { limit = limit }) end
     bool(value.multiline, field .. ".multiline"); action(value.submit, field .. ".submit", true)
@@ -207,21 +207,30 @@ function P.validate_prompt(prompt)
   text(prompt.id, "prompt.id", 128, false); text(prompt.title, "prompt.title", P.MAX_TEXT_BYTES, true)
   if prompt.message ~= nil then text(prompt.message, "prompt.message", P.MAX_TEXT_BYTES, true) end
   bool(prompt.visible, "prompt.visible"); if prompt.cancel ~= nil then action(prompt.cancel, "prompt.cancel") end
-  local state = { total = 0, ids = {} }; widgets(prompt.widgets, "prompt.widgets", state)
+  state = state or { total = 0, ids = {} }; widgets(prompt.widgets, "prompt.widgets", state)
   estimate(prompt)
+  return state
 end
 
 function P.validate_snapshot(panels, prompt, styles)
-  local count, total = 0, 0
+  local count, total_widgets, total_bytes = 0, 0, 0
   for id, panel in pairs(panels or {}) do
-    count = count + 1; if count > P.MAX_PANELS then errors.raise("LIMIT_EXCEEDED", "panel count exceeds its limit", { limit = P.MAX_PANELS }) end
-    P.validate_panel(id, panel)
-    local _, bytes = pcall(estimate, panel)
-    if type(bytes) == "number" then total = total + bytes end
+    count = count + 1
+    if count > P.MAX_PANELS then errors.raise("LIMIT_EXCEEDED", "panel count exceeds its limit", { limit = P.MAX_PANELS }) end
+    local state = P.validate_panel(id, panel, { total = total_widgets, ids = {} })
+    total_widgets = state.total
+    total_bytes = total_bytes + estimate(panel)
   end
-  P.validate_prompt(prompt); P.validate_style_table(styles or {})
-  total = total + estimate(prompt) + estimate(styles or {})
-  if total > P.MAX_PRESENTATION_BYTES then errors.raise("LIMIT_EXCEEDED", "presentation exceeds its aggregate byte limit", { limit = P.MAX_PRESENTATION_BYTES }) end
+  local prompt_state = P.validate_prompt(prompt, { total = total_widgets, ids = {} })
+  total_widgets = prompt_state and prompt_state.total or total_widgets
+  P.validate_style_table(styles or {})
+  total_bytes = total_bytes + estimate(prompt) + estimate(styles or {})
+  if total_widgets > P.MAX_TOTAL_WIDGETS then
+    errors.raise("LIMIT_EXCEEDED", "presentation widget count exceeds its limit", { limit = P.MAX_TOTAL_WIDGETS })
+  end
+  if total_bytes > P.MAX_PRESENTATION_BYTES then
+    errors.raise("LIMIT_EXCEEDED", "presentation exceeds its aggregate byte limit", { limit = P.MAX_PRESENTATION_BYTES })
+  end
 end
 
 return P

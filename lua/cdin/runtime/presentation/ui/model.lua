@@ -1,6 +1,7 @@
 local errors = require("cdin.runtime.core.error")
 local tablex = require("cdin.runtime.util.tablex")
 local PaneTree = require("cdin.runtime.presentation.ui.pane_tree")
+local Presentation = require("cdin.runtime.presentation.ui.presentation")
 
 -- Model the editor state shared with a frontend. This is semantic state only:
 -- it contains no pixel positions, rendering objects or document text.
@@ -16,6 +17,8 @@ function Model.new()
     revision = 0,
     views = {},
     panels = {},
+    panel_owners = {},
+    prompt_owner = nil,
     focus = nil,
     prompt = nil,
     status = {},
@@ -143,14 +146,47 @@ function Model:set_status(key, value)
   self:_touch()
 end
 
-function Model:set_prompt(prompt)
-  self.prompt = prompt and tablex.copy(prompt) or nil
+function Model:set_prompt(prompt, owner)
+  owner = owner or "core"
+  if prompt == nil then
+    return self:clear_prompt(owner)
+  end
+  if self.prompt ~= nil and self.prompt_owner ~= owner then
+    errors.raise("PERMISSION_DENIED", "prompt is owned by another extension", {
+      owner = self.prompt_owner, requester = owner,
+    })
+  end
+  Presentation.validate_prompt(prompt)
+  self.prompt = tablex.copy(prompt)
+  self.prompt_owner = owner
   self:_touch()
+  return true
 end
 
-function Model:set_panel(name, panel)
+function Model:clear_prompt(owner)
+  owner = owner or "core"
+  if self.prompt == nil then return false end
+  if self.prompt_owner ~= owner then
+    errors.raise("PERMISSION_DENIED", "extension cannot clear another owner's prompt", {
+      owner = self.prompt_owner, requester = owner,
+    })
+  end
+  self.prompt = nil
+  self.prompt_owner = nil
+  self:_touch()
+  return true
+end
+
+function Model:set_panel(name, panel, owner)
+  owner = owner or "core"
   if type(name) ~= "string" or name == "" then
     errors.raise("INVALID_ARGUMENT", "panel name is required")
+  end
+  local current_owner = self.panel_owners[name]
+  if current_owner ~= nil and current_owner ~= owner then
+    errors.raise("PERMISSION_DENIED", "extension cannot replace another owner's panel", {
+      panel_id = name, owner = current_owner, requester = owner,
+    })
   end
   if panel ~= nil and self.panels[name] == nil then
     local panel_count = 0
@@ -158,9 +194,53 @@ function Model:set_panel(name, panel)
     if panel_count >= Model.MAX_PANELS then
       errors.raise("LIMIT_EXCEEDED", "UI model panel limit reached", { limit = Model.MAX_PANELS })
     end
+    Presentation.validate_panel(name, panel)
+    self.panels[name] = tablex.copy(panel)
+    self.panel_owners[name] = owner
+    self:_touch()
+    return true
   end
-  self.panels[name] = panel and tablex.copy(panel) or nil
+  if panel == nil then
+    return self:remove_panel(name, owner)
+  end
+  Presentation.validate_panel(name, panel)
+  self.panels[name] = tablex.copy(panel)
+  self.panel_owners[name] = owner
   self:_touch()
+  return true
+end
+
+function Model:remove_panel(name, owner)
+  owner = owner or "core"
+  if self.panels[name] == nil then return false end
+  local current_owner = self.panel_owners[name]
+  if current_owner ~= owner then
+    errors.raise("PERMISSION_DENIED", "extension cannot remove another owner's panel", {
+      panel_id = name, owner = current_owner, requester = owner,
+    })
+  end
+  self.panels[name] = nil
+  self.panel_owners[name] = nil
+  self:_touch()
+  return true
+end
+
+function Model:remove_owner(owner)
+  local changed = false
+  for panel_id, panel_owner in pairs(self.panel_owners) do
+    if panel_owner == owner then
+      self.panel_owners[panel_id] = nil
+      self.panels[panel_id] = nil
+      changed = true
+    end
+  end
+  if self.prompt ~= nil and self.prompt_owner == owner then
+    self.prompt = nil
+    self.prompt_owner = nil
+    changed = true
+  end
+  if changed then self:_touch() end
+  return changed
 end
 
 function Model:set_theme(name)
@@ -173,6 +253,7 @@ function Model:_touch()
 end
 
 function Model:snapshot()
+  Presentation.validate_snapshot(self.panels, self.prompt, {})
   local views = {}
   for view_id, view in pairs(self.views) do
     views[view_id] = view:snapshot()

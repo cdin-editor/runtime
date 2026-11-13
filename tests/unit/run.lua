@@ -187,9 +187,19 @@ A.equal(ratio_model.revision, prior_ratio_revision + 1)
 A.equal(ratio_model:snapshot().layout.root.ratio, 0.65)
 
 local styles = Styles.new(); styles:define("text.default")
-local themes = Themes.new(styles); themes:register("default", { ["text.default"] = { foreground = "#ffffff" } })
+local themes = Themes.new(styles); themes:register("default", {
+  ["text.default"] = {
+    foreground = { r = 255, g = 255, b = 255, a = 255 },
+    bold = false,
+  },
+})
 A.equal(themes:activate("default").name, "default")
 A.error_code(function() themes:register("bad", { missing = {} }) end, "INVALID_ARGUMENT")
+A.error_code(function()
+  themes:register("invalid-color", {
+    ["text.default"] = { foreground = { r = 256, g = 0, b = 0, a = 255 } },
+  })
+end, "INVALID_ARGUMENT")
 local syntax = Syntax.new(); syntax:register("toy", { extensions = { "toy" }, tokenize = function(text) return { { start = 0, finish = #text, role = "syntax.keyword" } } end })
 A.error_code(function()
   syntax:register("other-toy", { extensions = { "toy" }, tokenize = function() return {} end })

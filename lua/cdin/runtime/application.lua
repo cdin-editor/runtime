@@ -13,6 +13,7 @@ local ThemeRegistry = require("cdin.runtime.presentation.theme.registry")
 local SyntaxRegistry = require("cdin.runtime.presentation.syntax.registry")
 local Highlighter = require("cdin.runtime.presentation.syntax.highlighter")
 local UIModel = require("cdin.runtime.presentation.ui.model")
+local UIPresentation = require("cdin.runtime.presentation.ui.presentation")
 local View = require("cdin.runtime.presentation.ui.view")
 local DefaultCommands = require("cdin.runtime.command.defaults")
 local Table = require("cdin.runtime.util.tablex")
@@ -56,7 +57,9 @@ function Runtime.new(options)
     events = self.events,
     config = self.config,
     logger = self.log:child("extension"),
-    ui = host.ui,
+    ui_model = self.ui,
+    host_ui = host.ui,
+    publish_ui = function() self:_publish_ui() end,
     styles = self.styles,
     themes = self.themes,
     syntax = self.syntax,
@@ -99,11 +102,11 @@ function Runtime:start()
     self.styles:define("syntax.string", { description = "Language string", category = "syntax" })
     self.styles:define("syntax.comment", { description = "Language comment", category = "syntax" })
     self.themes:register("default", {
-      ["text.default"] = { role = "text.default" },
-      ["text.selection"] = { role = "text.selection" },
-      ["syntax.keyword"] = { role = "syntax.keyword" },
-      ["syntax.string"] = { role = "syntax.string" },
-      ["syntax.comment"] = { role = "syntax.comment" },
+      ["text.default"] = {},
+      ["text.selection"] = {},
+      ["syntax.keyword"] = {},
+      ["syntax.string"] = {},
+      ["syntax.comment"] = {},
     })
     self.syntax:register("plain", require("cdin.runtime.presentation.syntax.plain"))
     DefaultCommands.register(self)
@@ -354,6 +357,7 @@ function Runtime:_publish_ui()
   end
   snapshot.theme = self.themes.active
   snapshot.styles = self.themes:snapshot().styles
+  UIPresentation.validate_snapshot(snapshot.panels, snapshot.prompt, snapshot.styles)
 
   local failures = self.events:emit("ui.model_changed", Table.copy(snapshot))
   for _, failure in ipairs(failures) do
