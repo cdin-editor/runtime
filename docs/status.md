@@ -51,10 +51,15 @@ bootstrap or complete editor application is Stable.
 1. **Native Host status and userdata ownership.** Backend PR
    [#40](https://github.com/cdin-editor/backend/pull/40) adds live Lua 5.4
    assertions for structured `STALE_VERSION` details and `__gc` release of
-   document, snapshot, transaction and subscription handles. Its exact-head
-   workflow [43449265418](https://github.com/cdin-editor/backend/actions/runs/43449265418)
-   was still running at this checkpoint. Do not count this gate as passed
-   until the PR checks complete and the change is merged.
+   document, snapshot, transaction and subscription handles. Its initial live
+   integration run [43449265418](https://github.com/cdin-editor/backend/actions/runs/43449265418)
+   passed and logged both `PASS runtime_host_conformance` and
+   `PASS runtime_host_smoke`. The follow-up head
+   [`4d002c3`](https://github.com/cdin-editor/backend/commit/4d002c3bf917418ee7c63ccd5c827bd791a5964f)
+   only corrects failure-diagnostic newline escaping; its fresh CI, live
+   integration and resource-stress runs were queued at this checkpoint.
+   Require those latest-head checks to pass and the PR to merge before treating
+   this gate as closed.
 2. **Complete native error/status conformance.** Verify the Host API's stable
    status-code mapping and detail payloads, invalid/stale handle behavior,
    owner-thread rejection, cleanup after partial startup, and shutdown/failure
