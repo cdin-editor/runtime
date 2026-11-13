@@ -78,6 +78,8 @@ The current manager exposes owner-scoped capabilities. Contributions are validat
   [UI presentation contract v1](https://github.com/cdin-editor/spec/blob/main/docs/proposals/ui-presentation-contract-v1.md)
   schema: bounded `label`, `text`, `list`, `tree`, `button` and `input`
   widgets, stable IDs, typed actions and validated text/style fields.
+  Unknown optional fields are preserved only when their values are bounded
+  and serializable; Frontends ignore fields they do not recognize.
 - Panel and prompt ownership is transactional with extension lifecycle.
   Contributions are removed after failed initialization, explicit unload, or
   Runtime shutdown. An extension cannot overwrite or remove another owner's

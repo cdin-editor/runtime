@@ -53,7 +53,13 @@ local function estimate(value, depth)
   if depth > 24 then invalid("presentation", "presentation data is too deeply nested") end
   local kind = type(value)
   if kind == "nil" then return 1 end
-  if kind == "boolean" or kind == "number" then return 8 end
+  if kind == "boolean" then return 8 end
+  if kind == "number" then
+    if value ~= value or value == math.huge or value == -math.huge then
+      invalid("presentation", "numeric values must be finite")
+    end
+    return 8
+  end
   if kind == "string" then return #value + 8 end
   if kind ~= "table" or getmetatable(value) ~= nil then invalid("presentation", "presentation data must be serializable") end
   local total = 8
@@ -86,8 +92,15 @@ function P.validate_style(style, field)
   if type(style) ~= "table" or getmetatable(style) ~= nil then invalid(field, "style must be a map") end
   for key, value in pairs(style) do
     local expected = attributes[key]
-    if not expected then invalid(field, "unsupported style attribute", { attribute = tostring(key) }) end
-    if expected == "rgba" then rgba(value, field .. "." .. key) else bool(value, field .. "." .. key) end
+    if expected == "rgba" then
+      rgba(value, field .. "." .. key)
+    elseif expected == "bool" then
+      bool(value, field .. "." .. key)
+    else
+      -- ADR-0026 permits unknown, bounded CBOR style attributes for
+      -- forward compatibility. The Frontend ignores names it does not know.
+      estimate(value)
+    end
   end
 end
 

@@ -370,6 +370,7 @@ local owned_plugin = [[return { init = function(core)
     ["plugin.sample"] = {
       foreground = { r = 180, g = 190, b = 200, a = 255 },
       bold = true,
+      future_emphasis = { mode = "subtle" },
     },
   })
   core.syntax:register("plugin-sample", { extensions = { "psamp" }, tokenize = function() return {} end })
@@ -403,6 +404,8 @@ A.truthy(publish_is_hidden)
 A.equal(runtime.ui.prompt.id, "plugin.sample.prompt")
 A.equal(host.published[#host.published].panels["plugin.sample.panel"].widgets[2].activate.command,
   "plugin.panel.activate")
+A.equal(host.published[#host.published].styles["plugin.sample"]["plugin.sample"].future_emphasis.mode,
+  "subtle")
 local panel_conflict = [[return { init = function(core)
   core.ui:register_panel("plugin.sample.panel", {
     kind = "content", title = "Takeover", widgets = {},
@@ -442,10 +445,20 @@ local invalid_style_plugin = [[return { init = function(core)
     ["plugin.invalid-style"] = { foreground = { r = 256, g = 0, b = 0, a = 255 } },
   })
 end }]]
+local non_finite_style_plugin = [[return { init = function(core)
+  core.styles:define("plugin.non-finite", { category = "test" })
+  core.themes:register("plugin.non-finite", {
+    ["plugin.non-finite"] = { future_attribute = 0 / 0 },
+  })
+end }]]
 A.error_code(function()
   runtime.plugins:load("invalid-style", invalid_style_plugin, {})
 end, "INVALID_ARGUMENT")
 A.falsy(runtime.styles:has("plugin.invalid-style"))
+A.error_code(function()
+  runtime.plugins:load("non-finite-style", non_finite_style_plugin, {})
+end, "INVALID_ARGUMENT")
+A.falsy(runtime.styles:has("plugin.non-finite"))
 
 local command_takeover = [[return { init = function(core)
   core.commands:register("document.undo", function() return "hijacked" end, { overwrite = true })
