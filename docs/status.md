@@ -1,59 +1,100 @@
-# Current state
+# Runtime 1.0.0 release readiness
 
-Runtime `1.0.0-rc.2` is the current Registry integration candidate for the Lua 5.4 policy layer. RC1 remains immutable. Registry Catalog commit `2a611eca830c0f235dacab04a1d006a8fd46e586` now includes the RC2 metadata and exact digest, and CDIN's updated Composition Root branch pins that Catalog commit; the exact RC2 Manifest/runtime verification is pending CDIN run 42447891569. This candidate carries the RT-012 Extension Contract provider declaration. It contains
-commands and key-binding registries, configuration, workspace context,
-Host-backed document clients, logical views and selections, semantic UI model,
-theme/style/syntax registries, extension sandboxing, and Kernel-logger routing.
+**Status: RELEASE PREPARATION — NOT PUBLISHED.** The intended Runtime package
+version is `1.0.0`. As of 2026-11-13, no `v1.0.0` tag or GitHub Release exists.
+This document separates checked evidence, pending native conformance, and
+downstream CDIN product acceptance. It does not mark the whole editor Stable.
 
-## Verified in this source package
+## Version boundaries
 
-- Lua 5.4.7 unit tests: 137 assertions passed.
-- Lua 5.4.7 simulated-Host integration tests: 131 assertions passed after the
-  Protocol compatibility regression test was added.
-- The RC2 candidate embeds package version `1.0.0-rc.2` for source snapshots
-  without usable Git metadata and declares
-  `org.cdin.runtime-extension-contract` version `1.0.0` in its new immutable
-  Release Metadata document. The Catalog and CDIN exact-manifest check still
-  need to move from RC1 to RC2 before this candidate is considered integrated.
-- Static architecture boundary checks: passed.
-- Registry-collected Runtime source pin
-  `d2acb6f174edf127c3bf59e8e5d4aedcbef0d490` reports the selected package
-  version `1.0.0-rc.1` in the real CDIN lifecycle check. The log records
-  `runtime started host_api=1.0.0 version=1.0.0-rc.1 kernel_abi=1.1.0` in
-  [CDIN workflow run 42407924719](https://github.com/cdin-editor/cdin/actions/runs/42407924719).
-  Its Linux/macOS/Windows TUI/GUI-SDL matrix and full-stack sanitizer job passed.
-- The tagged `v1.0.0-rc.1` source archive was built, tested, checksum-verified and published successfully by [Runtime release workflow 41737747346](https://github.com/cdin-editor/runtime/actions/runs/41737747346). Its artifact-test and assembled-asset verification steps passed.
-- Frontend Protocol negotiation follows Spec `1.x` minor compatibility;
-  Runtime Host API `1.0.0` is stable and uses same-major / minimum-minor compatibility.
+These version numbers describe different interfaces and must not be conflated:
 
-## Not verified / release blockers
+| Identity | Version | Meaning |
+| --- | --- | --- |
+| Runtime package | `1.0.0` (target) | Version of the Lua policy-layer package and its immutable module archive. |
+| Runtime Host API | `1.0.0` | Stable Backend-to-Runtime service contract. |
+| Frontend Protocol | `1.0.0` | Stable Frontend-to-Backend wire contract. |
+| Runtime Extension Contract | `1.0.0` | Registry SemVer for the documented extension API. |
+| Kernel ABI | `1.1.0` | Native document/host boundary provided by Backend's Kernel adapter. |
 
-- Live Backend + Lua 5.4 + installed Kernel startup and document round-trip.
-- Native Lua C binding ownership, `__gc` fallback, owner-thread enforcement and
-  Kernel status-to-Lua error mapping under failure injection.
-- Live Runtime → Backend UI projection/ACK integration against the real Lua/Kernel host.
-- The companion Backend legacy patcher targets pre-integration Runtime source; it must not be run against this already-integrated 1.0.0 candidate.
-- Filesystem discovery/loading and complete legacy extension-contract parity (RT-013 / RT-020 / RT-021 scope).
-- Existing editor behaviour parity during migration, including approved command
-  and keymap defaults.
-- Cross-platform production integration evidence supplied by the companion
-  Backend and full CDIN build.
-- Live native lifecycle/error-mapping conformance and approved Runtime/extension API surface.
+A stable Runtime package does not imply that CDIN's TUI, GUI-SDL, Registry
+bootstrap or complete editor application is Stable.
 
-The published RC1 Release Metadata remains immutable and still has an empty `contracts.provides` array.
-The new RC2 candidate adds the provider in a separate immutable metadata document.
-[Spec issue #16](https://github.com/cdin-editor/spec/issues/16) is now resolved
-by [Spec PR #27](https://github.com/cdin-editor/spec/pull/27): the canonical ID
-is `org.cdin.runtime-extension-contract`, and the existing API label `1.0`
-maps to Registry SemVer `1.0.0`. The already-published RC1 metadata is
-immutable and MUST NOT be edited in place. The Catalog now contains
-the separate RC2 metadata identity. CDIN pins that Catalog snapshot; the exact
-product-version verification is tracked by
-[Runtime issue #7](https://github.com/cdin-editor/runtime/issues/7) and is
-running in [CDIN CI 42447891569](https://github.com/cdin-editor/cdin/actions/runs/42447891569).
+## Verified evidence
 
-The Runtime Host API contract is frozen at `1.0.0`; release readiness still depends on native integration and the explicitly scoped extension/migration gates. The Frontend Protocol is the
-stable `1.0.0` shared wire contract. These are independent contracts and must
-not be conflated with the Runtime package version.
+- **Runtime CI** on main commit
+  [`5f37d733b42ad363abd8c26669157ae1bcc55186`](https://github.com/cdin-editor/runtime/commit/5f37d733b42ad363abd8c26669157ae1bcc55186)
+  passed in [run 43385962122](https://github.com/cdin-editor/runtime/actions/runs/43385962122):
+  Lua 5.4 on macOS and Windows, Lua 5.5 on Linux, Pipeline quality, and
+  documentation/workflow validation.
+- **Runtime package workflow** passed its package build, checksum and extracted
+  Lua 5.4 consumer checks in
+  [run 43385962119](https://github.com/cdin-editor/runtime/actions/runs/43385962119).
+  This was a branch push / dry-run, not a tag publication. It verified the
+  branch-derived development identity
+  `1.0.0-rc.2.next.9+g5f37d73`, not a stable `1.0.0` Release.
+- **Live Backend + PUC Lua 5.4 + installed Kernel integration** passed in
+  [Backend run 43385975403](https://github.com/cdin-editor/backend/actions/runs/43385975403).
+  The Backend checked out Runtime main at the exact commit above, installed
+  Kernel package 1.2.1 / ABI 1.1.0 and logger 0.1.0, ran Runtime tests and
+  boundaries, built Backend with Lua, and passed Backend/Kernel integration
+  plus the real Runtime startup/pump/shutdown smoke. The workflow ran on
+  Ubuntu 24.04; it is not cross-platform live-bridge evidence.
+- The same live Backend run exercised document lifecycle, snapshots,
+  transactions, notifications, stale handles, Backend session ownership,
+  queue backpressure, ACK handling, Driver promotion and the Runtime
+  PaneTree result/layout/flush path. These checks are real native integration,
+  not FakeHost-only tests.
 
-See the [Runtime component specification](https://github.com/cdin-editor/spec/blob/main/docs/components/runtime.md) for normative requirements and [current implementation status](status.md) for the evidence boundary. The Specification remains authoritative; `PROPOSED`, `OPEN` and `DEFERRED` items are not made accepted by adding code here.
+## Required gates before publishing Runtime 1.0.0
+
+1. **Native Host status and userdata ownership.** Backend PR
+   [#40](https://github.com/cdin-editor/backend/pull/40) adds live Lua 5.4
+   assertions for structured `STALE_VERSION` details and `__gc` release of
+   document, snapshot, transaction and subscription handles. Its exact-head
+   workflow [43449265418](https://github.com/cdin-editor/backend/actions/runs/43449265418)
+   was still running at this checkpoint. Do not count this gate as passed
+   until the PR checks complete and the change is merged.
+2. **Complete native error/status conformance.** Verify the Host API's stable
+   status-code mapping and detail payloads, invalid/stale handle behavior,
+   owner-thread rejection, cleanup after partial startup, and shutdown/failure
+   paths against the actual Backend adapter. A single stale-version vector is
+   not the entire mapping table.
+3. **Native event and projection conformance.** Preserve the already-passing
+   real Backend/Runtime UI projection, per-client ACK, backpressure and
+   PaneTree ordering checks; retain explicit notification overflow/resync and
+   failure-injection evidence where the relevant requirement applies.
+4. **Extension and migration scope.** The stable extension surface is the
+   directory-based `init.lua` entry contract and the documented capabilities
+   in [Extension API](contracts/extension-api.md). The top-level single-file
+   legacy form is explicitly scoped out of Runtime 1.0.0 because the current
+   Backend resolver resolves one directory per extension. RT-020 and RT-021
+   remain Proposed in Spec and are not silently promoted to compatibility
+   promises. The provisional `core.ui:publish` passthrough is not part of the
+   stable extension API.
+5. **Exact immutable publication.** A final `v1.0.0` tag must resolve to the
+   exact source commit being packaged. The tagged workflow must publish the
+   universal Lua module TAR.GZ, ZIP companion, checksums and canonical
+   `runtime-1.0.0.json` ADR-0028 metadata generated from that same tag commit.
+   The extracted package test must load the modules with PUC Lua 5.4 outside
+   a Runtime source checkout. A branch dry-run or the historical RC2 release
+   is not a substitute.
+
+## Immutable history and downstream adoption
+
+- Existing Runtime `v1.0.0-rc.1`, `v1.0.0-rc.2`, `v0.3.0`,
+  `v0.2.0` and `v0.1.0` tags/releases remain immutable. In particular,
+  RC2's historical `runtime-1.0.0-rc.2.release.json` asset is not rewritten
+  or renamed; canonical ADR-0028 metadata is generated only for the new tag.
+- Registry/CDIN must later select the published Runtime `1.0.0` metadata
+  identity, verify its GitHub-published digest and size, and consume the
+  immutable module archive. This downstream Catalog/Manifest adoption is
+  separate from Runtime's component release and does not make the complete
+  CDIN application Stable.
+- CDIN product status remains **Development** until its own artifact-first
+  install, IME/PaneTree, interactive behavior, recovery, performance and
+  Product Acceptance gates pass.
+
+Spec references: [Runtime component requirements and 1.0.0 gates](https://github.com/cdin-editor/spec/blob/main/docs/components/runtime.md),
+[ADR-0019 Runtime bridge](https://github.com/cdin-editor/spec/blob/main/docs/adr/ADR-0019-runtime-bridge.md),
+[ADR-0028 GitHub Release metadata discovery](https://github.com/cdin-editor/spec/blob/main/docs/adr/ADR-0028-github-release-metadata-discovery.md).
