@@ -38,9 +38,13 @@ else
   fi
 fi
 
-if ! grep -Fq "## [${version}]" CHANGELOG.md; then
-  echo "CHANGELOG.md has no section for ${version}" >&2
-  exit 1
+if [[ "${PIPELINE_DRY_RUN:-false}" != "true" || "${GITHUB_REF_TYPE:-}" == "tag" ]]; then
+  if ! grep -Fq "## [${version}]" CHANGELOG.md; then
+    echo "CHANGELOG.md has no section for ${version}" >&2
+    exit 1
+  fi
+else
+  echo "Branch dry-run: skipping the release changelog section check for derived version ${version}."
 fi
 
 command -v zip >/dev/null 2>&1 || { echo "zip is required to build the .zip archive" >&2; exit 2; }
